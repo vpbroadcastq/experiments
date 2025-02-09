@@ -53,10 +53,10 @@ struct std::formatter<dbk::ieee754> {
 		std::uint64_t s {};
 		static_assert(sizeof(double)==sizeof(std::uint64_t));
 		std::memcpy(&s, p, sizeof(std::uint64_t));
-		s = s&0xFF'FF'FF'FF'FF'FF'00'00u;  // oops - mask is backwards.  [eee'mmmm][seee'eeee] are the high bits
-		s >>= 12;
+		s = s&(0x00'00'FF'FF'FF'FF'FF'FFu);  // [eeee'mmmm][seee'eeee] are the high bits
+		s >>= 8;
 		s += (*(p+6))&0x0Fu;
-		std::reverse(reinterpret_cast<std::uint8_t*>(&s), reinterpret_cast<std::uint8_t*>(&s)+sizeof(std::uint64_t));
+		//std::reverse(reinterpret_cast<std::uint8_t*>(&s), reinterpret_cast<std::uint8_t*>(&s)+sizeof(std::uint64_t));
 
 		// TODO:  Too big
 		std::array<char,256> bffr {};
@@ -92,10 +92,33 @@ int main(int argc, char* argv[]) {
 	std::vector<double> vals {1.0, -1.0, 2.0, -2.0, 0.5, -0.5, 3.0, -3.0, 4.0, -4.0};
 	for (double curr : vals) {
 		std::cout << std::format("{}:  {}\n", curr, dbk::ieee754(curr));
+		
+		// As array of bytes
 		std::span<std::uint8_t> s {reinterpret_cast<unsigned char*>(&curr), sizeof(double)};
 		for (const std::uint8_t b : s) {
 			std::cout << std::format("{:02x}, ", b);
 		}
+		std::cout << '\n';
+
+		// As array of bits
+		std::uint64_t u64 {};
+		std::memcpy(&u64, &curr, sizeof(double));
+		const uint8_t* pu8 = reinterpret_cast<const std::uint8_t*>(&u64);
+		for (int bytenum=0; bytenum<sizeof(std::uint64_t); ++bytenum) {
+			std::cout << '[';
+			for (int bitnum=0; bitnum<8; ++bitnum) {
+				std::uint8_t mask {0b1000'0000u}; // NB:  Printing the _high_ bits first b/c it prints ltr!
+				mask >>= bitnum;
+				int bitval = (((*pu8)&mask) > 0) ? 1 : 0;
+				std::cout << std::format("{}", bitval);
+				if (bitnum==3) {
+					std::cout << '\'';
+				}
+			}
+			std::cout << ']';
+			++pu8;
+		}
+		
 		std::cout << "\n\n";
 	}
 
