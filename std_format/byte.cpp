@@ -202,9 +202,9 @@ int main(int argc, char* argv[]) {
 		std::cout << std::format("std::string s1 {{\"potato\"}} == {:'q}", dbk::as_bytes(s1)) << "\n\n";
 	}
 
+	std::cout << "\n----- OBJECT LAYOUT -----\n";
 	{
-		std::cout << "\n----- OBJECT LAYOUT -----\n";
-		std::cout << "Example 1:  a : public i\n";
+		std::cout << "Example 1:  a : public i1\n";
 		a a1 {};
 		std::cout << std::format("a a1() == {:|q}", dbk::as_bytes(a1)) << "\n";
 		a a2 {0xFF'FF'FF'FF'FF'FF'FF'F1u};
@@ -223,6 +223,40 @@ int main(int argc, char* argv[]) {
 		std::cout << std::format("d d1() == {:|q}", dbk::as_bytes(d1)) << "\n\n";
 	}
 
+	std::cout << "\n----- POINTERS AND CASTING -----\n";
+	{
+		std::cout << "Example 1:  a : public i1\n";
+		a a1 {};
+		a* pa1 = &a1;
+		i1* pa1_i1 = static_cast<i1*>(&a1);
+		std::cout << std::format("a a1() == {:|q}", dbk::as_bytes(a1)) << "\n";
+		std::cout << std::format("&a1 == {:'d}; static_cast<i1*>(&a1) == {:'d}\n",
+			dbk::as_bytes(pa1), dbk::as_bytes(pa1_i1));
+		std::cout << "\n";
+	}
+	{
+		std::cout << "Example 2:  b : public a\n";
+		b b1 {};
+		b* pb1 = &b1;
+		a* pb1_a = static_cast<a*>(&b1);
+		i1* pb1_i1 = static_cast<i1*>(&b1);
+		std::cout << std::format("b b1() == {:|q}", dbk::as_bytes(b1)) << "\n\n";
+		std::cout << std::format("&b1 == {:'d}; static_cast<a*>(&b1) == {:'d}; static_cast<i1*>(&b1) == {:'d}\n",
+			dbk::as_bytes(pb1), dbk::as_bytes(pb1_a), dbk::as_bytes(pb1_i1));
+		std::cout << "\n";
+	}
+	{
+		std::cout << "Example 3:  c : public i1, public i2\n";
+		c c1 {};
+		c* pc1 = &c1;
+		i1* pc1_i1 = static_cast<i1*>(&c1);
+		i2* pc1_i2 = static_cast<i2*>(&c1);
+		std::cout << std::format("c c1() == {:|q}", dbk::as_bytes(c1)) << "\n\n";
+		std::cout << std::format("&c1 == {:'d}; static_cast<i1*>(&c1) == {:'d}; static_cast<i2*>(&c1) == {:'d}\n",
+			dbk::as_bytes(pc1), dbk::as_bytes(pc1_i1), dbk::as_bytes(pc1_i2));
+		std::cout << "Note how the i2* points at the second vtbl ptr!\n";
+		std::cout << "\n";
+	}
 
 	return 0;
 }
