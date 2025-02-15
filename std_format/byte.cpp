@@ -134,14 +134,16 @@ public:
 	explicit c(std::uint64_t val) : m_data(val) {}
 
 	std::uint64_t get() const override {
-		const std::uintptr_t pthis = std::bit_cast<const std::uintptr_t,decltype(this)>(this);
-		std::cout << std::format("c::get() (i1) => this == {:'d}\n\n", dbk::as_bytes(pthis));
+		//const std::uintptr_t pthis = std::bit_cast<const std::uintptr_t,decltype(this)>(this);
+		const std::uintptr_t pthis = reinterpret_cast<const std::uintptr_t>(this);
+		std::cout << std::format("c::get() (i1) => this == {:'d}\n", dbk::as_bytes(pthis));
 		return m_data;
 	}
 
 	std::uint64_t get2() const override {
-		const std::uintptr_t pthis = std::bit_cast<const std::uintptr_t,decltype(this)>(this);
-		std::cout << std::format("c::get2() (i2) => this == {:'d}\n\n", dbk::as_bytes(pthis));
+		//const std::uintptr_t pthis = std::bit_cast<const std::uintptr_t,decltype(this)>(this);
+		const std::uintptr_t pthis = reinterpret_cast<const std::uintptr_t>(this);
+		std::cout << std::format("c::get2() (i2) => this == {:'d}\n", dbk::as_bytes(pthis));
 		return m_data + 2;
 	}
 private:
@@ -154,14 +156,20 @@ public:
 	explicit d(std::uint64_t val) : m_data(val) {}
 
 	std::uint64_t get() const override {
+		const std::uintptr_t pthis = reinterpret_cast<const std::uintptr_t>(this);
+		std::cout << std::format("d::get() (i1) => this == {:'d}\n", dbk::as_bytes(pthis));
 		return m_data;
 	}
 
 	std::uint64_t get2() const override {
+		const std::uintptr_t pthis = reinterpret_cast<const std::uintptr_t>(this);
+		std::cout << std::format("d::get2() (i2) => this == {:'d}\n", dbk::as_bytes(pthis));
 		return m_data + 2;
 	}
 
 	std::uint64_t get3() const override {
+		const std::uintptr_t pthis = reinterpret_cast<const std::uintptr_t>(this);
+		std::cout << std::format("d::get3() (i3) => this == {:'d}\n", dbk::as_bytes(pthis));
 		return m_data + 3;
 	}
 
@@ -257,11 +265,35 @@ int main(int argc, char* argv[]) {
 		i1* pc1_i1 = static_cast<i1*>(&c1);
 		i2* pc1_i2 = static_cast<i2*>(&c1);
 		std::cout << std::format("c c1() == {:|q}", dbk::as_bytes(c1)) << "\n\n";
-		std::cout << std::format("&c1 == {:'d}; static_cast<i1*>(&c1) == {:'d}; static_cast<i2*>(&c1) == {:'d}\n",
+		std::cout << std::format("&c1 == {:'d}\nstatic_cast<i1*>(&c1) == {:'d}\nstatic_cast<i2*>(&c1) == {:'d}\n",
 			dbk::as_bytes(pc1), dbk::as_bytes(pc1_i1), dbk::as_bytes(pc1_i2));
 		std::cout << "Note how the i2* points at the second vtbl ptr!\n";
-		c1.get();
-		c1.get2();
+		std::cout << "c1.get() => "; c1.get();
+		std::cout << "c1.get2() => "; c1.get2();
+		std::cout << "pc1_i1.get() => "; pc1_i1->get();
+		std::cout << "pc1_i2.get2() => "; pc1_i2->get2();
+		std::cout << "\n";
+	}
+	{
+		std::cout << "Example 4:  d : public c, public i3\n";
+		d d1 {};
+		d* pd1 = &d1;
+		i1* pd1_i1 = static_cast<i1*>(&d1);
+		i2* pd1_i2 = static_cast<i2*>(&d1);
+		i3* pd1_i3 = static_cast<i3*>(&d1);
+		c* pd1_c = static_cast<c*>(&d1);
+		std::cout << std::format("d d1() == {:|q}", dbk::as_bytes(d1)) << "\n\n";
+		std::cout << std::format("&d1 == {:'d}\nstatic_cast<i1*>(&d1) == {:'d}\nstatic_cast<i2*>(&d1) == {:'d}\nstatic_cast<i3*>(&d1) == {:'d}\nstatic_cast<c*>(&d1) == {:'d}\n",
+			dbk::as_bytes(pd1), dbk::as_bytes(pd1_i1), dbk::as_bytes(pd1_i2), dbk::as_bytes(pd1_i3), dbk::as_bytes(pd1_c));
+		std::cout << "Note how the i2* points at the second vtbl ptr and how the i3* points at the third!\n";
+		std::cout << "d1.get() => "; d1.get();
+		std::cout << "d1.get2() => "; d1.get2();
+		std::cout << "d1.get3() => "; d1.get3();
+		std::cout << "pd1_i1.get() => "; pd1_i1->get();
+		std::cout << "pd1_i2.get2() => "; pd1_i2->get2();
+		std::cout << "pd1_i3.get3() => "; pd1_i3->get3();
+		std::cout << "pd1_c.get() => "; pd1_c->get();
+		std::cout << "pd1_c.get2() => "; pd1_c->get2();
 		std::cout << "\n";
 	}
 
