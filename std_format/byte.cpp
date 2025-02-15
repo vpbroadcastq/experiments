@@ -6,6 +6,7 @@
 #include <vector>
 #include <iterator>
 #include <span>
+#include <bit>
 
 
 namespace dbk {
@@ -133,10 +134,14 @@ public:
 	explicit c(std::uint64_t val) : m_data(val) {}
 
 	std::uint64_t get() const override {
+		const std::uintptr_t pthis = std::bit_cast<const std::uintptr_t,decltype(this)>(this);
+		std::cout << std::format("c::get() (i1) => this == {:'d}\n\n", dbk::as_bytes(pthis));
 		return m_data;
 	}
 
 	std::uint64_t get2() const override {
+		const std::uintptr_t pthis = std::bit_cast<const std::uintptr_t,decltype(this)>(this);
+		std::cout << std::format("c::get2() (i2) => this == {:'d}\n\n", dbk::as_bytes(pthis));
 		return m_data + 2;
 	}
 private:
@@ -255,6 +260,8 @@ int main(int argc, char* argv[]) {
 		std::cout << std::format("&c1 == {:'d}; static_cast<i1*>(&c1) == {:'d}; static_cast<i2*>(&c1) == {:'d}\n",
 			dbk::as_bytes(pc1), dbk::as_bytes(pc1_i1), dbk::as_bytes(pc1_i2));
 		std::cout << "Note how the i2* points at the second vtbl ptr!\n";
+		c1.get();
+		c1.get2();
 		std::cout << "\n";
 	}
 
