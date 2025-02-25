@@ -1,2 +1,4 @@
 *.out
 .vscode/*
+.vs/
+x64/
