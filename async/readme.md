@@ -18,6 +18,7 @@ gcc, linux
 -acquire_relaxed_read, relaxed_relaxed_read, non_atomic_read
  All generate essentially the same asm.  When you start using atomic you get padding
  instructions, but otherwise it's just regular mov.
-
-
-
+-relaxed_sequential_write generates an xchg instruction
+-relaxed_sequential_read looks the same as the other reads
+-The seq_cst operation set is a little less than 10x slower on this Celeron N5105.
+-Be careful when interpreting indivdual runs; there can be massive differences between runs

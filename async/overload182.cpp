@@ -95,6 +95,35 @@ struct acquire_relaxed_read {
 	}
 };
 
+struct relaxed_sequential_write {
+	std::atomic<std::uint32_t>& x;
+	std::atomic<std::uint32_t>& y;
+	const std::uint32_t niter;
+
+	__attribute__((noinline)) void operator()() {
+		for (std::uint32_t i=0; i<niter; ++i) {
+			x.store(i, std::memory_order_relaxed);
+			y.store(i, std::memory_order_seq_cst);
+		}
+	}
+};
+
+
+struct sequential_relaxed_read {
+	std::atomic<std::uint32_t>& x;
+	std::atomic<std::uint32_t>& y;
+	const std::uint32_t niter;
+	std::uint32_t count_mismatch {0};
+
+	__attribute__((noinline)) void operator()() {
+		for (std::uint32_t i=0; i<niter; ++i) {
+			std::uint32_t yy = y.load(std::memory_order_seq_cst);
+			std::uint32_t xx = x.load(std::memory_order_relaxed);
+			if (xx < yy) { ++count_mismatch; }
+		}
+	}
+};
+
 
 
 
@@ -162,6 +191,26 @@ int main(int argc, char* argv[]) {
 		std::format_to(std::ostream_iterator<char>(std::cout),"\tElapsed time == {} seconds\n", time_seconds);
 	}
 
+	{
+		// x and y start out ==.  t1 sets x before y, therefore expect x >= y always
+		// Uses memory_order_release and memory_order_acquire for one of the writes and one of the reads, respectively
+		constexpr std::uint32_t niter {std::numeric_limits<std::uint32_t>::max()};
+		std::atomic<std::uint32_t> x {0};
+		std::atomic<std::uint32_t> y {0};
+		relaxed_sequential_write rxsqw {x, y, niter};
+		sequential_relaxed_read sqrr {x, y, niter, 0};
+		
+		std::chrono::time_point<std::chrono::steady_clock> start {std::chrono::steady_clock::now()};
+		std::thread t1(rxsqw);
+		std::thread t2(sqrr);
+		t1.join();
+		t2.join();
+		std::chrono::time_point<std::chrono::steady_clock> end {std::chrono::steady_clock::now()};
+		
+		std::chrono::duration<double> time_seconds {end-start};
+		std::format_to(std::ostream_iterator<char>(std::cout),"Mixed _release and _acquire:  After {} iterations, count_mismatches == {}\n", niter, sqrr.count_mismatch);
+		std::format_to(std::ostream_iterator<char>(std::cout),"\tElapsed time == {} seconds\n", time_seconds);
+	}
 
 
 

@@ -189,3 +189,71 @@ With __attribute__((noinline))
     50db:	c3                   	ret
     50dc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
 
+
+
+
+With __attribute__((noinline))
+Note the xchg
+0000000000005380 <relaxed_sequential_write::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    5380:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    5383:	85 c0                	test   eax,eax
+    5385:	74 2e                	je     53b5 <relaxed_sequential_write::operator()()+0x35>
+    5387:	31 c0                	xor    eax,eax
+    5389:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    5390:	00 00 00 00
+    5394:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    539b:	00 00 00 00
+    539f:	90                   	nop
+	__atomic_store_n(&_M_i, __i, int(__m));
+    53a0:	48 8b 17             	mov    rdx,QWORD PTR [rdi]
+    53a3:	89 c1                	mov    ecx,eax
+    53a5:	89 02                	mov    DWORD PTR [rdx],eax
+    53a7:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+    53ab:	87 0a                	xchg   DWORD PTR [rdx],ecx
+    53ad:	83 c0 01             	add    eax,0x1
+    53b0:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    53b3:	72 eb                	jb     53a0 <relaxed_sequential_write::operator()()+0x20>
+	}
+    53b5:	c3                   	ret
+    53b6:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+    53bd:	00 00 00
+
+
+
+
+With __attribute__((noinline))
+Looks the same as the other read operations
+00000000000053e0 <sequential_relaxed_read::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    53e0:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    53e3:	85 c0                	test   eax,eax
+    53e5:	74 34                	je     541b <sequential_relaxed_read::operator()()+0x3b>
+    53e7:	31 c0                	xor    eax,eax
+    53e9:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    53f0:	00 00 00 00
+    53f4:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    53fb:	00 00 00 00
+    53ff:	90                   	nop
+	return __atomic_load_n(&_M_i, int(__m));
+    5400:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+    5404:	8b 12                	mov    edx,DWORD PTR [rdx]
+    5406:	48 8b 0f             	mov    rcx,QWORD PTR [rdi]
+    5409:	8b 09                	mov    ecx,DWORD PTR [rcx]
+			if (xx < yy) { ++count_mismatch; }
+    540b:	39 d1                	cmp    ecx,edx
+    540d:	73 04                	jae    5413 <sequential_relaxed_read::operator()()+0x33>
+    540f:	83 47 14 01          	add    DWORD PTR [rdi+0x14],0x1
+		for (std::uint32_t i=0; i<niter; ++i) {
+    5413:	83 c0 01             	add    eax,0x1
+    5416:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    5419:	72 e5                	jb     5400 <sequential_relaxed_read::operator()()+0x20>
+	}
+    541b:	c3                   	ret
+    541c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+
+
+
+
+
+
