@@ -1,0 +1,259 @@
+g++ -std=c++20 -g -O2 -fno-exceptions -pthread overload182.cpp
+objdump -dS -M intel ./a.out | c++filt > disasm.txt
+I used noinline so it would be easier to find the functions of interest in the disasm
+
+
+With __attribute__((noinline)) the loop isn't optimized away
+0000000000004ee0 <non_atomic_write::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) { // At -O2 this loop is completely optimized away
+    4ee0:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    4ee3:	85 c0                	test   eax,eax
+    4ee5:	74 15                	je     4efc <non_atomic_write::operator()()+0x1c>
+			x = i;
+    4ee7:	48 8b 0f             	mov    rcx,QWORD PTR [rdi]
+			y = i;
+    4eea:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+		for (std::uint32_t i=0; i<niter; ++i) { // At -O2 this loop is completely optimized away
+    4eee:	31 c0                	xor    eax,eax
+			x = i;
+    4ef0:	89 01                	mov    DWORD PTR [rcx],eax
+			y = i;
+    4ef2:	89 02                	mov    DWORD PTR [rdx],eax
+		for (std::uint32_t i=0; i<niter; ++i) { // At -O2 this loop is completely optimized away
+    4ef4:	83 c0 01             	add    eax,0x1
+    4ef7:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    4efa:	72 f4                	jb     4ef0 <non_atomic_write::operator()()+0x10>
+	}
+    4efc:	c3                   	ret
+    4efd:	0f 1f 00             	nop    DWORD PTR [rax]
+
+
+
+With __attribute__((noinline))
+0000000000004f20 <non_atomic_read::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    4f20:	8b 57 10             	mov    edx,DWORD PTR [rdi+0x10]
+    4f23:	85 d2                	test   edx,edx
+    4f25:	74 2c                	je     4f53 <non_atomic_read::operator()()+0x33>
+			std::uint32_t yy = y;
+    4f27:	48 8b 77 08          	mov    rsi,QWORD PTR [rdi+0x8]
+			std::uint32_t xx = x;
+    4f2b:	48 8b 0f             	mov    rcx,QWORD PTR [rdi]
+		for (std::uint32_t i=0; i<niter; ++i) {
+    4f2e:	31 c0                	xor    eax,eax
+    4f30:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    4f37:	00 00 00 00
+    4f3b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+			if (xx < yy) { ++count_mismatch; }
+    4f40:	44 8b 06             	mov    r8d,DWORD PTR [rsi]
+    4f43:	44 39 01             	cmp    DWORD PTR [rcx],r8d
+    4f46:	73 04                	jae    4f4c <non_atomic_read::operator()()+0x2c>
+    4f48:	83 47 14 01          	add    DWORD PTR [rdi+0x14],0x1
+		for (std::uint32_t i=0; i<niter; ++i) {
+    4f4c:	83 c0 01             	add    eax,0x1
+    4f4f:	39 d0                	cmp    eax,edx
+    4f51:	75 ed                	jne    4f40 <non_atomic_read::operator()()+0x20>
+	}
+    4f53:	c3                   	ret
+    4f54:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+    4f5b:	00 00 00
+    4f5e:	66 90                	xchg   ax,ax
+
+
+
+With __attribute__((noinline))
+Just uses regular mov to write out to x and y.
+For some reason this one has a bunch of padding-generating instructions at the start
+0000000000004f80 <relaxed_relaxed_write::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    4f80:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    4f83:	85 c0                	test   eax,eax
+    4f85:	74 2c                	je     4fb3 <relaxed_relaxed_write::operator()()+0x33>
+    4f87:	31 c0                	xor    eax,eax
+    4f89:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    4f90:	00 00 00 00
+    4f94:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    4f9b:	00 00 00 00
+    4f9f:	90                   	nop
+	  = __m & __memory_order_mask;
+	__glibcxx_assert(__b != memory_order_acquire);
+	__glibcxx_assert(__b != memory_order_acq_rel);
+	__glibcxx_assert(__b != memory_order_consume);
+
+	__atomic_store_n(&_M_i, __i, int(__m));
+    4fa0:	48 8b 17             	mov    rdx,QWORD PTR [rdi]
+    4fa3:	89 02                	mov    DWORD PTR [rdx],eax
+    4fa5:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+    4fa9:	89 02                	mov    DWORD PTR [rdx],eax
+    4fab:	83 c0 01             	add    eax,0x1
+    4fae:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    4fb1:	72 ed                	jb     4fa0 <relaxed_relaxed_write::operator()()+0x20>
+	}
+    4fb3:	c3                   	ret
+    4fb4:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+    4fbb:	00 00 00
+    4fbe:	66 90                	xchg   ax,ax
+
+
+
+With __attribute__((noinline))
+Still just using regular mov instructions.  Like with the write version, also has a bunch of padding
+0000000000004fe0 <relaxed_relaxed_read::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    4fe0:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    4fe3:	85 c0                	test   eax,eax
+    4fe5:	74 2e                	je     5015 <relaxed_relaxed_read::operator()()+0x35>
+    4fe7:	4c 8b 47 08          	mov    r8,QWORD PTR [rdi+0x8]
+    4feb:	48 8b 37             	mov    rsi,QWORD PTR [rdi]
+    4fee:	31 c0                	xor    eax,eax
+    4ff0:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    4ff7:	00 00 00 00
+    4ffb:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+	memory_order __b __attribute__ ((__unused__))
+	  = __m & __memory_order_mask;
+	__glibcxx_assert(__b != memory_order_release);
+	__glibcxx_assert(__b != memory_order_acq_rel);
+
+	return __atomic_load_n(&_M_i, int(__m));
+    5000:	41 8b 10             	mov    edx,DWORD PTR [r8]
+    5003:	8b 0e                	mov    ecx,DWORD PTR [rsi]
+			if (xx < yy) { ++count_mismatch; }
+    5005:	39 d1                	cmp    ecx,edx
+    5007:	73 04                	jae    500d <relaxed_relaxed_read::operator()()+0x2d>
+    5009:	83 47 14 01          	add    DWORD PTR [rdi+0x14],0x1
+		for (std::uint32_t i=0; i<niter; ++i) {
+    500d:	83 c0 01             	add    eax,0x1
+    5010:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    5013:	72 eb                	jb     5000 <relaxed_relaxed_read::operator()()+0x20>
+	}
+    5015:	c3                   	ret
+    5016:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+    501d:	00 00 00
+
+
+
+With __attribute__((noinline))
+0000000000005040 <relaxed_release_write::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    5040:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    5043:	85 c0                	test   eax,eax
+    5045:	74 2c                	je     5073 <relaxed_release_write::operator()()+0x33>
+    5047:	31 c0                	xor    eax,eax
+    5049:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    5050:	00 00 00 00
+    5054:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    505b:	00 00 00 00
+    505f:	90                   	nop
+	__atomic_store_n(&_M_i, __i, int(__m));
+    5060:	48 8b 17             	mov    rdx,QWORD PTR [rdi]
+    5063:	89 02                	mov    DWORD PTR [rdx],eax
+    5065:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+    5069:	89 02                	mov    DWORD PTR [rdx],eax
+    506b:	83 c0 01             	add    eax,0x1
+    506e:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    5071:	72 ed                	jb     5060 <relaxed_release_write::operator()()+0x20>
+	}
+    5073:	c3                   	ret
+    5074:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+    507b:	00 00 00
+    507e:	66 90                	xchg   ax,ax
+
+
+
+With __attribute__((noinline))
+00000000000050a0 <acquire_relaxed_read::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    50a0:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    50a3:	85 c0                	test   eax,eax
+    50a5:	74 34                	je     50db <acquire_relaxed_read::operator()()+0x3b>
+    50a7:	31 c0                	xor    eax,eax
+    50a9:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    50b0:	00 00 00 00
+    50b4:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    50bb:	00 00 00 00
+    50bf:	90                   	nop
+	return __atomic_load_n(&_M_i, int(__m));
+    50c0:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+    50c4:	8b 12                	mov    edx,DWORD PTR [rdx]
+    50c6:	48 8b 0f             	mov    rcx,QWORD PTR [rdi]
+    50c9:	8b 09                	mov    ecx,DWORD PTR [rcx]
+			if (xx < yy) { ++count_mismatch; }
+    50cb:	39 d1                	cmp    ecx,edx
+    50cd:	73 04                	jae    50d3 <acquire_relaxed_read::operator()()+0x33>
+    50cf:	83 47 14 01          	add    DWORD PTR [rdi+0x14],0x1
+		for (std::uint32_t i=0; i<niter; ++i) {
+    50d3:	83 c0 01             	add    eax,0x1
+    50d6:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    50d9:	72 e5                	jb     50c0 <acquire_relaxed_read::operator()()+0x20>
+	}
+    50db:	c3                   	ret
+    50dc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+
+
+
+
+With __attribute__((noinline))
+Note the xchg
+0000000000005380 <relaxed_sequential_write::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    5380:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    5383:	85 c0                	test   eax,eax
+    5385:	74 2e                	je     53b5 <relaxed_sequential_write::operator()()+0x35>
+    5387:	31 c0                	xor    eax,eax
+    5389:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    5390:	00 00 00 00
+    5394:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    539b:	00 00 00 00
+    539f:	90                   	nop
+	__atomic_store_n(&_M_i, __i, int(__m));
+    53a0:	48 8b 17             	mov    rdx,QWORD PTR [rdi]
+    53a3:	89 c1                	mov    ecx,eax
+    53a5:	89 02                	mov    DWORD PTR [rdx],eax
+    53a7:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+    53ab:	87 0a                	xchg   DWORD PTR [rdx],ecx
+    53ad:	83 c0 01             	add    eax,0x1
+    53b0:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    53b3:	72 eb                	jb     53a0 <relaxed_sequential_write::operator()()+0x20>
+	}
+    53b5:	c3                   	ret
+    53b6:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+    53bd:	00 00 00
+
+
+
+
+With __attribute__((noinline))
+Looks the same as the other read operations
+00000000000053e0 <sequential_relaxed_read::operator()()>:
+		for (std::uint32_t i=0; i<niter; ++i) {
+    53e0:	8b 47 10             	mov    eax,DWORD PTR [rdi+0x10]
+    53e3:	85 c0                	test   eax,eax
+    53e5:	74 34                	je     541b <sequential_relaxed_read::operator()()+0x3b>
+    53e7:	31 c0                	xor    eax,eax
+    53e9:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    53f0:	00 00 00 00
+    53f4:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    53fb:	00 00 00 00
+    53ff:	90                   	nop
+	return __atomic_load_n(&_M_i, int(__m));
+    5400:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+    5404:	8b 12                	mov    edx,DWORD PTR [rdx]
+    5406:	48 8b 0f             	mov    rcx,QWORD PTR [rdi]
+    5409:	8b 09                	mov    ecx,DWORD PTR [rcx]
+			if (xx < yy) { ++count_mismatch; }
+    540b:	39 d1                	cmp    ecx,edx
+    540d:	73 04                	jae    5413 <sequential_relaxed_read::operator()()+0x33>
+    540f:	83 47 14 01          	add    DWORD PTR [rdi+0x14],0x1
+		for (std::uint32_t i=0; i<niter; ++i) {
+    5413:	83 c0 01             	add    eax,0x1
+    5416:	3b 47 10             	cmp    eax,DWORD PTR [rdi+0x10]
+    5419:	72 e5                	jb     5400 <sequential_relaxed_read::operator()()+0x20>
+	}
+    541b:	c3                   	ret
+    541c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+
+
+
+
+
+
