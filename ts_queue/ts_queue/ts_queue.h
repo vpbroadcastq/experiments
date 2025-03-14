@@ -31,20 +31,38 @@ public:
 
 	// "wait" means "wait for it to be !empty"
 	void wait_and_pop(T& dest) {  // use cv???
-		//...
+		std::unique_lock lk(_mtx);
+		_cv.wait(lk,[this](){ return !_q.empty(); });
+		dest = _q.front();
+		_q.pop();
+		return;
 	}
 
 	// "wait" means "wait for it to be !empty"
 	std::shared_ptr<T> wait_and_pop() {
-		//...
+		std::unique_lock lk(_mtx);
+		_cv.wait(lk,[this](){ return !_q.empty(); });
+		auto result = std::make_shared(_q.front());
+		_q.pop();
+		return result;
 	}
 
-	bool try_pop(&T v) {
-		//...
+	bool try_pop(T& v) {
+		std::lock_guard g(_mtx);
+		if (_q.empty()) {
+			return false;
+		}
+		v = _q.front();
+		_q.pop();
 	}
 
 	std::shared_ptr<T> try_pop() {
-		//...
+		std::lock_guard g(_mtx);
+		if (_q.empty()) {
+			return nullptr;
+		}
+		auto result = std::make_shared(_q.front());
+		_q.pop();
 	}
 
 	bool empty() const {
