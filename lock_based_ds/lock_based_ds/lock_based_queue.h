@@ -22,14 +22,14 @@ public:
 
 	void wait_and_pop(T& val) {
 		std::unique_lock lk(m_mtx);
-		cv.wait(lk,[this]{ return !this.empty(); });
+		m_cv.wait(lk,[this]{ return !this.empty(); });
 		val = std::move(m_q.front());
 		m_q.pop();
 	}
 
 	std::shared_ptr<T> wait_and_pop() {
 		std::unique_lock lk(m_mtx);
-		cv.wait(lk,[this]{ return !this.empty(); });
+		m_cv.wait(lk,[this]{ return !this.empty(); });
 		std::shared_ptr<T> result = std::move(m_q.front());
 		m_q.pop();
 		return result;
@@ -40,7 +40,7 @@ public:
 		if (m_q.empty()) {
 			return false;
 		}
-		val = ats::move(m_q.front());
+		val = std::move(m_q.front());
 		m_q.pop();
 	}
 
