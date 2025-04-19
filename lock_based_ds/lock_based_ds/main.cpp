@@ -49,12 +49,12 @@ bool test_tssl_queue() {
 
 bool test_map() {
 	map<int,std::string> m(19);
-	constexpr int max_key = 100;
+	constexpr int max_key = 1000;
 
 	std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(1,2);
-	for (int i=0; i<1000; ++i) {
+	for (int i=0; i<10000; ++i) {
 		int rand_op = distrib(gen);
 		if (rand_op==1) {  // Add/update
 			int k = i%(max_key+1);
@@ -79,11 +79,56 @@ bool test_map() {
 	return true;
 }
 
+
+void random_add_remove_update(tsmap<int,std::string>& m) {
+	constexpr int max_key = 1000;
+
+	std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(1,2);
+	for (int i=0; i<10000; ++i) {
+		int rand_op = distrib(gen);
+		if (rand_op==1) {  // Add/update
+			int k = i%(max_key+1);
+			std::string val = std::to_string(k);
+			m.add_or_update(k,val);
+		} else if (rand_op==2) {  // Remove
+			int k = i%(max_key+1);
+			bool removed = m.remove(k);
+		}
+	}
+}
+
+
+bool test_tsmap() {
+	tsmap<int,std::string> m(19);
+
+	auto threadproc = [&m]() {
+		random_add_remove_update(m);
+	};
+
+	std::thread t1(threadproc);
+	std::thread t2(threadproc);
+	std::thread t3(threadproc);
+	std::thread t4(threadproc);
+	std::thread t5(threadproc);
+
+	t1.join();
+	t2.join();
+	t3.join();
+	t4.join();
+	t5.join();
+
+	return true;
+}
+
+
 int main(int argc, char* argv[]) {
 	std::cout << "Hello CMake." << std::endl;
 
-	test_tssl_queue();
-	test_map();
+	//test_tssl_queue();
+	//test_map();
+	test_tsmap();
 
 	return 0;
 }
