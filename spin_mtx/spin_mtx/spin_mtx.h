@@ -16,4 +16,5 @@ public:
 	bool try_lock();
 };
 
+// Crash if b is false
 void verify(bool b);

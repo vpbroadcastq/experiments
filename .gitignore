@@ -7,3 +7,6 @@
 x64/
 */out/*
 */.idea/*
+*/build/*
+*/.cache/*
+*/.vscode/*
