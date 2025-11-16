@@ -1,6 +1,8 @@
 ﻿# CMakeList.txt : CMake project for spin_mtx, include source and define
 # project specific logic here.
 #
+set(CMAKE_MINIMUM_REQUIRED VERSION 3.30)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add source to this project's executable.
 add_executable (spin_mtx "spin_mtx.cpp" "spin_mtx.h" "main.cpp")

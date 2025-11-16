@@ -1,5 +1,5 @@
 ﻿#include "spin_mtx.h"
-#include <iostream>
+#include <exception>
 
 void verify(bool b) {
 	if (!b) {
@@ -10,14 +10,14 @@ void verify(bool b) {
 void spin_mtx::lock() {
 	while (true) {
 		bool expected = false;
-		bool result = m_locked.compare_exchange_weak(expected,true);
+		bool result = m_locked.compare_exchange_weak(expected,true, std::memory_order_acquire);
 
-		if (expected) {
+		/*if (expected) {
 			verify(!result);
 		}
 		if (!expected) {
 			verify(result);
-		}
+		}*/
 
 		if (!expected) {
 			break;
@@ -34,7 +34,7 @@ void spin_mtx::unlock() {
 // _not_ own the locked state).
 bool spin_mtx::try_lock() {
 	bool expected = false;
-	bool result = m_locked.compare_exchange_strong(expected,true);
+	bool result = m_locked.compare_exchange_strong(expected,true, std::memory_order_release);
 	return result;
 }
 
