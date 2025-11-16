@@ -2,10 +2,37 @@
 #include "lock_based_queue.h"
 #include "sll_q.h"
 #include "map.h"
+#include "sll.h"
 #include <iostream>
 #include <thread>
 #include <random>
 #include <string>
+#include <array>
+
+bool test_sll() {
+	auto node_print = [](const int& i) {
+		std::cout << i << "->";
+	};
+	sll<int> list;
+	for (int i=0; i<13; ++i) {
+		list.push_front(std::make_shared<int>(i));
+	}
+	list.for_each(node_print);
+	std::cout << "\n\n";
+
+	// Remove some values
+	std::array<int,3> a{0,4,12};
+	for (const auto& e : a) {
+		auto pred = [e](const int& i){ return i==e; };
+		std::shared_ptr<int> result = list.remove_if(pred);
+		if (!result || *result != e) {
+			std::abort();
+		}
+	}
+	list.for_each(node_print);
+
+	return true;
+}
 
 bool test_tssl_queue() {
 	tssll_queue<int> q1;
@@ -124,11 +151,10 @@ bool test_tsmap() {
 
 
 int main(int argc, char* argv[]) {
-	std::cout << "Hello CMake." << std::endl;
-
 	//test_tssl_queue();
 	//test_map();
-	test_tsmap();
+	//test_tsmap();
+	test_sll();
 
 	return 0;
 }
