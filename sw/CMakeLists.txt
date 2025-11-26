@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Create executable
-add_executable(sw sw.cpp)
+# Create executable (now builds from two source files)
+add_executable(sw sw.cpp config_path.cpp config_file.cpp)
 
 # Optional: Set compiler flags for better diagnostics
 if(MSVC)
