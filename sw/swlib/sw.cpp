@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <ranges>
 
-
+namespace sw {
 //
 // Generic file reading utility.  Reads an entire file in one-shot.
 //
@@ -150,3 +150,5 @@ task determine_task(int argc, char* argv[]) {
 
     return task::run_nameless;
 }
+
+} // namespace sw
