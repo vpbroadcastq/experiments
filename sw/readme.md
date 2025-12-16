@@ -46,11 +46,11 @@ The config file is a plain-text file with repeating pairs of a bracketed name an
 On linux and other unix-like systems the config file defaults to `$XDG_CONFIG_HOME/sw.ini` (usually `~/.config/`)
 - Any operation that causes the config file to be written to, for example, running with `-d <timer name>` or with a new timer name will cause the entire file to be normalized; invalid entries and unnecessary whitespace will be removed.
 
-## Build (Linux / macOS)
-This project uses CMake. From the project root run:
+## Build
+This project uses CMake and requires C++23.  From the project root run:
 
 ```bash
 cmake -S . -B build
-cmake --build build
+cmake --build ./build
 ```
-This produces the `sw` executable in `build/` (or whatever CMake generator/`CMAKE_RUNTIME_OUTPUT_DIRECTORY` is configured).
+This produces the `sw` executable in `build/exe`.

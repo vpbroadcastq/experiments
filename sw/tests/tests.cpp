@@ -2,8 +2,7 @@
 
 #include <array>
 #include <gtest/gtest.h>
-#include "../sw.h"
-#include <string_view>
+#include <swlib/sw.h>
 #include <vector>
 
 //
