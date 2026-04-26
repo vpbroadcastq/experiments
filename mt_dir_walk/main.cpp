@@ -10,6 +10,9 @@
 #include <thread>
 #include <vector>
 
+//
+// Single-threaded recursive directory walk
+//
 uint64_t single_threaded(const std::filesystem::path& root) {
     namespace fs = std::filesystem;
 
@@ -34,6 +37,14 @@ uint64_t single_threaded(const std::filesystem::path& root) {
     return result;
 }
 
+//
+// Single "pilot" thread that recursively populates a "queue" of directories, and multiple worker threads
+// that pop entries from this queue and iterate over the non-directory contents computing the sha256.
+//
+// Notes
+// - One crappy thing about this design is that the workers spin.  If something delays the pilot
+//   thread for some bizarre reason, the workers might consume cpu.
+//
 uint64_t mt_shared_work_q(const std::filesystem::path& root, size_t nthreads) {
     mt_stack<std::filesystem::path> stk;
     std::atomic<bool> pilot_work_completed{false};
@@ -99,6 +110,9 @@ uint64_t mt_shared_work_q(const std::filesystem::path& root, size_t nthreads) {
         }
     };
 
+    // t_pilot can not outlive scope exit and access a destroyed 'stk' because the worker threads
+    // won't join until it sets pilot_work_completed, and once it has set this, it no longer attempts
+    // to access stk.
     std::thread t_pilot(pilot);
     t_pilot.detach();
 
