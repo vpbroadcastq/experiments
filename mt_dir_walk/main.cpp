@@ -18,9 +18,14 @@ uint64_t single_threaded(const std::filesystem::path& root) {
 
     uint64_t result{};
     std::vector<std::byte> fdata;
-    for (const fs::directory_entry& curr :
-         fs::recursive_directory_iterator(root)) {
+    for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root)) {
         if (!fs::is_regular_file(curr)) {
+            continue;
+        }
+
+        // Skip anything > 10 Mb
+        size_t nbytes = std::filesystem::file_size(curr.path());
+        if (nbytes > 10'000'000) {
             continue;
         }
 
@@ -45,7 +50,7 @@ uint64_t single_threaded(const std::filesystem::path& root) {
 // - One crappy thing about this design is that the workers spin.  If something delays the pilot
 //   thread for some bizarre reason, the workers might consume cpu.
 //
-uint64_t mt_shared_work_q(const std::filesystem::path& root, size_t nthreads) {
+uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t nthreads) {
     mt_stack<std::filesystem::path> stk;
     std::atomic<bool> pilot_work_completed{false};
     std::atomic<uint64_t> result{};
@@ -54,11 +59,16 @@ uint64_t mt_shared_work_q(const std::filesystem::path& root, size_t nthreads) {
     // pushes every directory that it finds onto the stack
     auto pilot = [&stk, &pilot_work_completed, &root]() {
         namespace fs = std::filesystem;
-        for (const fs::directory_entry& curr :
-             fs::recursive_directory_iterator(root)) {
+        if (!fs::is_directory(root)) {
+            pilot_work_completed = true;
+            return;
+        }
+
+        stk.push(root);
+        for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root)) {
             if (fs::is_directory(curr)) {
                 stk.push(curr);
-                //std::print("Pushed {}\n", curr.path().string());
+                std::print("Pushed {}\n", curr.path().string());
             }
         }
         pilot_work_completed = true;
@@ -84,8 +94,7 @@ uint64_t mt_shared_work_q(const std::filesystem::path& root, size_t nthreads) {
                 continue;
             }
 
-            for (const fs::directory_entry curr_file :
-                 fs::directory_iterator(*curr_dir)) {
+            for (const fs::directory_entry curr_file : fs::directory_iterator(*curr_dir)) {
                 if (!fs::is_regular_file(curr_file)) {
                     continue;
                 }
@@ -102,7 +111,7 @@ uint64_t mt_shared_work_q(const std::filesystem::path& root, size_t nthreads) {
                     std::print("Error reading {}\n", curr_file.path().string());
                     continue;
                 }
-                // std::print("Reading {}\n", curr_file.path().string());
+                std::print("Reading {}\n", curr_file.path().string());
 
                 sha256 h = hash_sha256(fdata);
                 result += static_cast<uint64_t>(h.data[0]);
@@ -162,7 +171,7 @@ int main(int argc, char* argv[]) {
         std::chrono::steady_clock::duration elapsed{};
         {
             scoped_timer t(elapsed);
-            volatile uint64_t result = mt_shared_work_q(root, nthreads);
+            volatile uint64_t result = single_shared_q_pilot_thread(root, nthreads);
         }
         std::print("Multi-threaded ({} threads):  {:%H:%M:%S}\n", nthreads, elapsed);
     } else {
