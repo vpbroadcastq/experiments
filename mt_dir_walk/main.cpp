@@ -42,6 +42,111 @@ uint64_t single_threaded(const std::filesystem::path& root) {
     return result;
 }
 
+
+//
+// The design here is fragile.  
+// Has to be move ctorable, otherwise you get a copy when passing the temporary into std::thread, and the
+// implictly-defined copy ctor does not increment nthreads.
+// Move operations also have to remember to clear out nthreads from the source object lest you get a double
+// decrement.
+//
+struct fully_parallel_worker {
+    mt_stack<std::filesystem::path>* stk {};
+    std::atomic<uint64_t>* result {};
+    std::atomic<int32_t>* nthreads {};
+    const uint64_t max_nthreads;
+
+    fully_parallel_worker(mt_stack<std::filesystem::path>& stk, std::atomic<uint64_t>& result,
+        std::atomic<int32_t>& nthreads_, uint64_t max_nthreads)
+        : stk(&stk), result(&result), nthreads(&nthreads_), max_nthreads(max_nthreads) {
+            nthreads->fetch_add(1);
+    }
+
+    fully_parallel_worker(fully_parallel_worker&& lhs) : max_nthreads(lhs.max_nthreads) {
+        this->stk = lhs.stk;
+        this->result = lhs.result;
+        this->nthreads = lhs.nthreads;
+        lhs.nthreads = nullptr;  // Note!
+    }
+
+    fully_parallel_worker(const fully_parallel_worker&) = delete;
+    fully_parallel_worker& operator=(const fully_parallel_worker&) = delete;
+    fully_parallel_worker& operator=(fully_parallel_worker&&) = delete;  // Can exist but needs to null nthreads
+
+    ~fully_parallel_worker() {
+        if (nthreads) {  // null in a moved-from object
+            nthreads->fetch_sub(1);
+        }
+    }
+
+
+    //
+    // Pops directories off the shared stack and iterates over the entries in that directory.  When it encounters
+    // an entry that is a folder, adds it to the stk and attempts to create a new thread.
+    //
+    void operator()() {
+        namespace fs = std::filesystem;
+        std::vector<std::byte> fdata;
+
+        std::optional<fs::path> curr {};
+        while (true) {
+            curr = stk->pop();
+            if (!curr) {
+                return;
+            }
+
+            for (const fs::directory_entry& de : fs::directory_iterator(*curr)) {
+                if (fs::is_directory(de)) {
+                    stk->push(de);
+                    if (*nthreads < max_nthreads) {  // race!
+                        std::thread t(fully_parallel_worker(*stk, *result, *nthreads, max_nthreads));
+                        t.detach();
+                    }
+                    continue;
+                }
+
+                if (!fs::is_regular_file(de)) {
+                    continue;
+                }
+
+                fdata.resize(0);
+
+                // Skip anything > 10 Mb
+                size_t nbytes = fs::file_size(de.path());
+                if (nbytes > 10'000'000) {
+                    continue;
+                }
+
+                if (!readfile(de.path(), fdata)) {
+                    std::print("Error reading {}\n", de.path().string());
+                    continue;
+                }
+                std::print("Reading {}\n", de.path().string());
+
+                sha256 h = hash_sha256(fdata);
+                result += static_cast<uint64_t>(h.data[0]);
+            }
+        }
+    }  // pop next off stk
+};
+
+
+uint64_t single_shared_q_no_pilot(const std::filesystem::path& root, size_t max_nthreads) {
+    mt_stack<std::filesystem::path> stk;
+    std::atomic<uint64_t> result{};
+    std::atomic<int32_t> nthreads{};
+
+    stk.push(root);
+    std::thread t(fully_parallel_worker(stk, result, nthreads, max_nthreads));
+    t.detach();
+    while (nthreads > 0) {
+        // BAD!!!
+    }
+
+    return result;
+}
+
+
 //
 // Single "pilot" thread that recursively populates a "queue" of directories, and multiple worker threads
 // that pop entries from this queue and iterate over the non-directory contents computing the sha256.
@@ -171,7 +276,8 @@ int main(int argc, char* argv[]) {
         std::chrono::steady_clock::duration elapsed{};
         {
             scoped_timer t(elapsed);
-            volatile uint64_t result = single_shared_q_pilot_thread(root, nthreads);
+            //volatile uint64_t result = single_shared_q_pilot_thread(root, nthreads);
+            volatile uint64_t result = single_shared_q_no_pilot(root, nthreads);
         }
         std::print("Multi-threaded ({} threads):  {:%H:%M:%S}\n", nthreads, elapsed);
     } else {
