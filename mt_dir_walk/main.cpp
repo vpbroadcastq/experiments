@@ -32,14 +32,14 @@ uint64_t single_threaded(const std::filesystem::path& root) {
     namespace fs = std::filesystem;
 
     uint64_t result{};
-    std::vector<std::byte> fdata;
-    for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root)) {
+    //std::vector<std::byte> fdata;
+    for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root, fs::directory_options::skip_permission_denied)) {
         if (!is_plain_regular_file(curr)) {
             continue;
         }
 
         // Skip anything > 10 Mb
-        size_t nbytes = std::filesystem::file_size(curr.path());
+        /*size_t nbytes = std::filesystem::file_size(curr.path());
         if (nbytes > 10'000'000) {
             continue;
         }
@@ -51,7 +51,9 @@ uint64_t single_threaded(const std::filesystem::path& root) {
         }
 
         sha256 h = hash_sha256(fdata);
-        result += static_cast<uint64_t>(h.data[0]);
+        result += static_cast<uint64_t>(h.data[0]);*/
+
+        result += fs::file_size(curr);
     }
 
     return result;
@@ -112,7 +114,7 @@ struct fully_parallel_worker {
     //
     void operator()() {
         namespace fs = std::filesystem;
-        std::vector<std::byte> fdata;
+        //std::vector<std::byte> fdata;
 
         std::optional<fs::path> curr {};
         while (true) {
@@ -121,7 +123,7 @@ struct fully_parallel_worker {
                 return;
             }
 
-            for (const fs::directory_entry& de : fs::directory_iterator(*curr)) {
+            for (const fs::directory_entry& de : fs::directory_iterator(*curr, fs::directory_options::skip_permission_denied)) {
                 if (is_plain_directory(de)) {
                     stk->push(de);
                     bool expected {false};
@@ -139,7 +141,7 @@ struct fully_parallel_worker {
                     continue;
                 }
 
-                fdata.resize(0);
+                /*fdata.resize(0);
 
                 // Skip anything > 10 Mb
                 size_t nbytes = fs::file_size(de.path());
@@ -154,7 +156,8 @@ struct fully_parallel_worker {
                 //std::print("Reading {}\n", de.path().string());
 
                 sha256 h = hash_sha256(fdata);
-                *result += static_cast<uint64_t>(h.data[0]);
+                *result += static_cast<uint64_t>(h.data[0]);*/
+                *result += fs::file_size(de);
             }
         }
     }  // pop next off stk
@@ -210,7 +213,7 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
         }
 
         stk.push(root);
-        for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root)) {
+        for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root, fs::directory_options::skip_permission_denied)) {
             if (is_plain_directory(curr)) {
                 stk.push(curr);
                 //std::print("Pushed {}\n", curr.path().string());
@@ -224,7 +227,7 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
     auto worker = [&stk, &pilot_work_completed, &result]() {
         namespace fs = std::filesystem;
 
-        std::vector<std::byte> fdata;
+        //std::vector<std::byte> fdata;
         while (true) {
             std::optional<fs::path> curr_dir;
             if (pilot_work_completed) {
@@ -239,12 +242,12 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
                 continue;
             }
 
-            for (const fs::directory_entry curr_file : fs::directory_iterator(*curr_dir)) {
+            for (const fs::directory_entry curr_file : fs::directory_iterator(*curr_dir, fs::directory_options::skip_permission_denied)) {
                 if (!is_plain_regular_file(curr_file)) {
                     continue;
                 }
 
-                fdata.resize(0);
+                /*fdata.resize(0);
 
                 // Skip anything > 10 Mb
                 size_t nbytes = std::filesystem::file_size(curr_file.path());
@@ -259,7 +262,8 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
                 //std::print("Reading {}\n", curr_file.path().string());
 
                 sha256 h = hash_sha256(fdata);
-                result += static_cast<uint64_t>(h.data[0]);
+                result += static_cast<uint64_t>(h.data[0]);*/
+                result += fs::file_size(curr_file);
             }
         }
     };
@@ -284,9 +288,10 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
-        std::print("Usage:  prog-name path s|m<n>\n");
+        std::print("Usage:  prog-name path s|m<n>|p<n>\n");
         std::print("  s      single-threaded\n");
-        std::print("  m<n>   multi-threaded with n threads (e.g. m8)\n");
+        std::print("  m<n>   multi-threaded no-pilot with max n threads (e.g. m8)\n");
+        std::print("  p<n>   multi-threaded pilot-thread strategy with n workers (e.g. p8)\n");
         return 1;
     }
 
@@ -300,28 +305,33 @@ int main(int argc, char* argv[]) {
 
     if (mode == "s") {
         std::chrono::steady_clock::duration elapsed{};
+        uint64_t result {};
         {
             scoped_timer t(elapsed);
-            volatile uint64_t result = single_threaded(root);
+            result = single_threaded(root);
         }
-        std::print("Single-threaded:  {:%H:%M:%S}\n", elapsed);
-    } else if (mode.starts_with('m')) {
+        std::print("Single-threaded:  {:%H:%M:%S}\nresult = {}\n", elapsed,result);
+    } else if (mode.starts_with('m') || mode.starts_with('p')) {
+        const bool use_pilot = mode.starts_with('p');
         size_t nthreads{};
         const std::string_view n_str = mode.substr(1);
         auto [ptr, ec] = std::from_chars(n_str.data(), n_str.data() + n_str.size(), nthreads);
         if (ec != std::errc{} || nthreads == 0) {
-            std::print("Invalid thread count in '{}'. Use e.g. m8\n", mode);
+            std::print("Invalid thread count in '{}'. Use e.g. m8 or p8\n", mode);
             return 1;
         }
         std::chrono::steady_clock::duration elapsed{};
+        uint64_t result {};
         {
             scoped_timer t(elapsed);
-            //volatile uint64_t result = single_shared_q_pilot_thread(root, nthreads);
-            volatile uint64_t result = single_shared_q_no_pilot(root, nthreads);
+            result = use_pilot ?
+                single_shared_q_pilot_thread(root, nthreads) :
+                single_shared_q_no_pilot(root, nthreads);
         }
-        std::print("Multi-threaded ({} threads):  {:%H:%M:%S}\n", nthreads, elapsed);
+        std::print("Multi-threaded {} ({} threads):  {:%H:%M:%S}\nresult = {}\n",
+            use_pilot ? "pilot" : "no-pilot", nthreads, elapsed, result);
     } else {
-        std::print("Unknown mode '{}'. Use 's' or 'm<n>' (e.g. m8)\n", mode);
+        std::print("Unknown mode '{}'. Use 's', 'm<n>', or 'p<n>' (e.g. m8, p8)\n", mode);
         return 1;
     }
 

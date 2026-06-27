@@ -15,6 +15,13 @@ cmake --build build-release -j
 
 Or use the existing VS Code task `Configure and build Debug`.
 
+You can also use the project build helper script:
+```bash
+./build debug
+./build rel
+./build clean
+```
+
 ## Run
 From the project root, run the debug binary with:
 ```bash
@@ -23,10 +30,12 @@ From the project root, run the debug binary with:
 
 Modes:
 - `s`: single-threaded traversal
-- `m<n>`: multi-threaded traversal with `<n>` threads (example: `m8`)
+- `m<n>`: multi-threaded no-pilot traversal with max `<n>` threads (example: `m8`)
+- `p<n>`: multi-threaded pilot-thread traversal with `<n>` worker threads (example: `p8`)
 
 Examples:
 ```bash
 ./build-debug/mt_dir_walk ./test s
 ./build-debug/mt_dir_walk ./test m8
+./build-debug/mt_dir_walk ./test p8
 ```

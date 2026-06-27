@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    echo "Usage: build {rel|debug|clean}" >&2
+    exit 1
+}
+
+[[ $# -eq 1 ]] || usage
+
+mode="$1"
+
+# Script is intended to live in the project root alongside CMakeLists.txt.
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ ! -f "$script_dir/CMakeLists.txt" ]]; then
+    echo "Error: CMakeLists.txt not found next to this script at $script_dir" >&2
+    exit 1
+fi
+
+case "$mode" in
+    rel)
+        cmake -S "$script_dir" -B "$script_dir/build-release" -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        cmake --build "$script_dir/build-release" -j
+        ;;
+    debug)
+        cmake -S "$script_dir" -B "$script_dir/build-debug" -DCMAKE_BUILD_TYPE=Debug
+        cmake --build "$script_dir/build-debug" -j
+        ;;
+    clean)
+        rm -rf "$script_dir/build-release" "$script_dir/build-debug"
+        echo "Removed $script_dir/build-release and $script_dir/build-debug"
+        ;;
+    *)
+        usage
+        ;;
+esac
