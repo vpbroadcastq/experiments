@@ -32,3 +32,5 @@ public:
     scoped_timer(const scoped_timer&)            = delete;
     scoped_timer& operator=(const scoped_timer&) = delete;
 };
+
+

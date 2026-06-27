@@ -8,6 +8,5 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(mt_dir_walk
     main.cpp
-    sha256.cpp
     utils.cpp
 )

@@ -1,5 +1,4 @@
 #include "mt_stack.h"
-#include "sha256.h"
 #include "timer.h"
 #include "utils.h"
 #include <atomic>
@@ -59,10 +58,6 @@ uint64_t single_threaded(const std::filesystem::path& root) {
 }
 
 
-//
-// Unlike the pilot thread impl, in which the "harness" creates the pilot and then a fixed number of worker
-// threads, here, the harness creates a single worker thread, and then it and subsequently created worker threads
-// are responsible for spawning yet more workers until the maximum has been reached.
 //
 // The design here is fragile.  
 // Has to be move ctorable, otherwise you get a copy when passing the temporary into std::thread, and the
@@ -134,8 +129,8 @@ struct fully_parallel_worker {
                         if (*nthreads < max_nthreads) {
                             std::thread t(fully_parallel_worker(*stk, *result, *nthreads, *creating_thread_flag, max_nthreads));
                             t.detach();
-                            *creating_thread_flag = false;
                         }
+                        *creating_thread_flag = false;
                     }  // else { someone is creating a thread rn... don't even bother to check the count
                     continue;
                 }
@@ -156,7 +151,7 @@ struct fully_parallel_worker {
                     std::print("Error reading {}\n", de.path().string());
                     continue;
                 }
-                std::print("Reading {}\n", de.path().string());
+                //std::print("Reading {}\n", de.path().string());
 
                 sha256 h = hash_sha256(fdata);
                 *result += static_cast<uint64_t>(h.data[0]);
@@ -166,6 +161,11 @@ struct fully_parallel_worker {
 };
 
 
+//
+// Unlike the pilot thread impl, in which the "harness" creates the pilot and then a fixed number of worker
+// threads, here, the harness creates a single worker thread, and then it and subsequently created worker threads
+// are responsible for spawning yet more workers until the maximum has been reached.
+//
 uint64_t single_shared_q_no_pilot(const std::filesystem::path& root, size_t max_nthreads) {
     mt_stack<std::filesystem::path> stk;
     std::atomic<uint64_t> result{};
@@ -213,7 +213,7 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
         for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root)) {
             if (is_plain_directory(curr)) {
                 stk.push(curr);
-                std::print("Pushed {}\n", curr.path().string());
+                //std::print("Pushed {}\n", curr.path().string());
             }
         }
         pilot_work_completed = true;
@@ -256,7 +256,7 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
                     std::print("Error reading {}\n", curr_file.path().string());
                     continue;
                 }
-                std::print("Reading {}\n", curr_file.path().string());
+                //std::print("Reading {}\n", curr_file.path().string());
 
                 sha256 h = hash_sha256(fdata);
                 result += static_cast<uint64_t>(h.data[0]);
