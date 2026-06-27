@@ -5,9 +5,6 @@
 #include <cstdio>
 
 
-
-
-
 bool readfile(const std::filesystem::path& file, std::vector<std::byte>& dest) {
     dest.resize(0);
     if (!std::filesystem::is_regular_file(file) || !std::filesystem::exists(file)) {
@@ -31,5 +28,15 @@ bool readfile(const std::filesystem::path& file, std::vector<std::byte>& dest) {
     }
 
     return true;
+}
+
+
+
+bool is_plain_directory(const std::filesystem::directory_entry& de) {
+    return std::filesystem::is_directory(de.symlink_status());
+}
+
+bool is_plain_regular_file(const std::filesystem::directory_entry& de) {
+    return std::filesystem::is_regular_file(de.symlink_status());
 }
 

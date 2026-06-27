@@ -10,6 +10,22 @@
 #include <thread>
 #include <vector>
 
+
+
+//
+// Traversal strategies
+//
+// uint64_t single_threaded(const std::filesystem::path& root)
+// uint64_t single_shared_q_no_pilot(const std::filesystem::path& root, size_t max_nthreads)
+// uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t nthreads)
+//
+//
+//
+//
+
+
+
+
 //
 // Single-threaded recursive directory walk
 //
@@ -19,7 +35,7 @@ uint64_t single_threaded(const std::filesystem::path& root) {
     uint64_t result{};
     std::vector<std::byte> fdata;
     for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root)) {
-        if (!fs::is_regular_file(curr)) {
+        if (!is_plain_regular_file(curr)) {
             continue;
         }
 
@@ -44,6 +60,10 @@ uint64_t single_threaded(const std::filesystem::path& root) {
 
 
 //
+// Unlike the pilot thread impl, in which the "harness" creates the pilot and then a fixed number of worker
+// threads, here, the harness creates a single worker thread, and then it and subsequently created worker threads
+// are responsible for spawning yet more workers until the maximum has been reached.
+//
 // The design here is fragile.  
 // Has to be move ctorable, otherwise you get a copy when passing the temporary into std::thread, and the
 // implictly-defined copy ctor does not increment nthreads.
@@ -54,11 +74,16 @@ struct fully_parallel_worker {
     mt_stack<std::filesystem::path>* stk {};
     std::atomic<uint64_t>* result {};
     std::atomic<int32_t>* nthreads {};
+    std::atomic<bool>* creating_thread_flag {};
     const uint64_t max_nthreads;
 
     fully_parallel_worker(mt_stack<std::filesystem::path>& stk, std::atomic<uint64_t>& result,
-        std::atomic<int32_t>& nthreads_, uint64_t max_nthreads)
-        : stk(&stk), result(&result), nthreads(&nthreads_), max_nthreads(max_nthreads) {
+        std::atomic<int32_t>& nthreads_, std::atomic<bool>& creating_thread_flag_, uint64_t max_nthreads)
+        : stk(&stk), result(&result), nthreads(&nthreads_), creating_thread_flag(&creating_thread_flag_),
+          max_nthreads(max_nthreads) {
+            // Note that the nthreads increment occurs in the ctor.  It matters that the _creating_ thread
+            // increment the count rather than the _created_ thread because there is no knowing when the
+            // _created_ thread will actually begin to run.
             nthreads->fetch_add(1);
     }
 
@@ -66,6 +91,7 @@ struct fully_parallel_worker {
         this->stk = lhs.stk;
         this->result = lhs.result;
         this->nthreads = lhs.nthreads;
+        this->creating_thread_flag = lhs.creating_thread_flag;
         lhs.nthreads = nullptr;  // Note!
     }
 
@@ -74,8 +100,13 @@ struct fully_parallel_worker {
     fully_parallel_worker& operator=(fully_parallel_worker&&) = delete;  // Can exist but needs to null nthreads
 
     ~fully_parallel_worker() {
-        if (nthreads) {  // null in a moved-from object
-            nthreads->fetch_sub(1);
+        if (!nthreads) {  // null in a moved-from object
+            return;
+        }
+
+        int32_t prev = nthreads->fetch_sub(1);
+        if (prev == 1) {
+            nthreads->notify_all();
         }
     }
 
@@ -96,16 +127,20 @@ struct fully_parallel_worker {
             }
 
             for (const fs::directory_entry& de : fs::directory_iterator(*curr)) {
-                if (fs::is_directory(de)) {
+                if (is_plain_directory(de)) {
                     stk->push(de);
-                    if (*nthreads < max_nthreads) {  // race!
-                        std::thread t(fully_parallel_worker(*stk, *result, *nthreads, max_nthreads));
-                        t.detach();
-                    }
+                    bool expected {false};
+                    if (creating_thread_flag->compare_exchange_strong(expected, true)) {
+                        if (*nthreads < max_nthreads) {
+                            std::thread t(fully_parallel_worker(*stk, *result, *nthreads, *creating_thread_flag, max_nthreads));
+                            t.detach();
+                            *creating_thread_flag = false;
+                        }
+                    }  // else { someone is creating a thread rn... don't even bother to check the count
                     continue;
                 }
 
-                if (!fs::is_regular_file(de)) {
+                if (!is_plain_regular_file(de)) {
                     continue;
                 }
 
@@ -124,7 +159,7 @@ struct fully_parallel_worker {
                 std::print("Reading {}\n", de.path().string());
 
                 sha256 h = hash_sha256(fdata);
-                result += static_cast<uint64_t>(h.data[0]);
+                *result += static_cast<uint64_t>(h.data[0]);
             }
         }
     }  // pop next off stk
@@ -135,12 +170,17 @@ uint64_t single_shared_q_no_pilot(const std::filesystem::path& root, size_t max_
     mt_stack<std::filesystem::path> stk;
     std::atomic<uint64_t> result{};
     std::atomic<int32_t> nthreads{};
+    std::atomic<bool> creating_thread_flag {false};  // Set when somebody is spawning a new thread
 
     stk.push(root);
-    std::thread t(fully_parallel_worker(stk, result, nthreads, max_nthreads));
+    std::thread t(fully_parallel_worker(stk, result, nthreads, creating_thread_flag, max_nthreads));
     t.detach();
-    while (nthreads > 0) {
-        // BAD!!!
+    while (true) {
+        const int32_t nthreads_old = nthreads;
+        if (nthreads == 0) {
+            break;
+        }
+        nthreads.wait(nthreads_old);
     }
 
     return result;
@@ -171,7 +211,7 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
 
         stk.push(root);
         for (const fs::directory_entry& curr : fs::recursive_directory_iterator(root)) {
-            if (fs::is_directory(curr)) {
+            if (is_plain_directory(curr)) {
                 stk.push(curr);
                 std::print("Pushed {}\n", curr.path().string());
             }
@@ -200,7 +240,7 @@ uint64_t single_shared_q_pilot_thread(const std::filesystem::path& root, size_t 
             }
 
             for (const fs::directory_entry curr_file : fs::directory_iterator(*curr_dir)) {
-                if (!fs::is_regular_file(curr_file)) {
+                if (!is_plain_regular_file(curr_file)) {
                     continue;
                 }
 
