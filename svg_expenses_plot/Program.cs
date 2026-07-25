@@ -14,6 +14,13 @@ class Program
 {
     public static void Main(string[] args)
     {
+        if (args.Length != 1)
+        {
+            Console.Error.WriteLine("Usage: program <transactions-file>");
+            Console.Error.WriteLine("Example: dotnet run -- ./may.txt > output.svg");
+            return;
+        }
+        
         List<Transaction>? transactions = Utils.ExtractTransactionList(File.ReadAllLines(args[0]));
         if (transactions == null)
         {

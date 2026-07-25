@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="800" fill="#ffffff" style="stroke-width:5; stroke:#00ff00" />
+  <polyline fill="#ffffff" style="stroke-width:4; stroke:#000000" points="50,50 50,750 1350,750" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="91.93548387096774" y1="750" x2="91.93548387096774" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="133.8709677419355" y1="750" x2="133.8709677419355" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="175.80645161290323" y1="750" x2="175.80645161290323" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="217.74193548387098" y1="750" x2="217.74193548387098" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="259.6774193548387" y1="750" x2="259.6774193548387" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="301.61290322580646" y1="750" x2="301.61290322580646" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="343.5483870967742" y1="750" x2="343.5483870967742" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="385.48387096774195" y1="750" x2="385.48387096774195" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="427.4193548387097" y1="750" x2="427.4193548387097" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="469.35483870967744" y1="750" x2="469.35483870967744" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="511.2903225806452" y1="750" x2="511.2903225806452" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="553.2258064516129" y1="750" x2="553.2258064516129" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="595.1612903225807" y1="750" x2="595.1612903225807" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="637.0967741935484" y1="750" x2="637.0967741935484" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="679.0322580645161" y1="750" x2="679.0322580645161" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="720.9677419354839" y1="750" x2="720.9677419354839" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="762.9032258064517" y1="750" x2="762.9032258064517" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="804.8387096774194" y1="750" x2="804.8387096774194" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="846.7741935483871" y1="750" x2="846.7741935483871" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="888.7096774193549" y1="750" x2="888.7096774193549" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="930.6451612903227" y1="750" x2="930.6451612903227" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="972.5806451612904" y1="750" x2="972.5806451612904" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1014.516129032258" y1="750" x2="1014.516129032258" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1056.4516129032259" y1="750" x2="1056.4516129032259" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1098.3870967741937" y1="750" x2="1098.3870967741937" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1140.3225806451615" y1="750" x2="1140.3225806451615" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1182.258064516129" y1="750" x2="1182.258064516129" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1224.1935483870968" y1="750" x2="1224.1935483870968" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1266.1290322580646" y1="750" x2="1266.1290322580646" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="1308.0645161290322" y1="750" x2="1308.0645161290322" y2="760" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="50" y1="643.939393939394" x2="40" y2="643.939393939394" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="50" y1="537.8787878787879" x2="40" y2="537.8787878787879" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="50" y1="431.8181818181818" x2="40" y2="431.8181818181818" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="50" y1="325.75757575757575" x2="40" y2="325.75757575757575" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="50" y1="219.69696969696975" x2="40" y2="219.69696969696975" />
+  <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="50" y1="113.63636363636363" x2="40" y2="113.63636363636363" />
+  <text x="750" y="750" fill="#000000" font-size="35">Day number</text>
+  <text x="50" y="300" fill="#000000" font-size="35" transform="rotate(-90,50,300)">Cumulative spent</text>
+  <line x1="91.93548387096774" y1="728.7878787878788" x2="1350" y2="92.4242424242425" style="stroke:#000000;stroke-width:4;stroke-dasharray:30" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="91.93548387096774" cy="750" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="133.8709677419355" cy="750" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="175.80645161290323" cy="675.1" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="217.74193548387098" cy="675.1" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="259.6774193548387" cy="630.4060606060606" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="301.61290322580646" cy="630.4060606060606" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="343.5483870967742" cy="630.4060606060606" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="385.48387096774195" cy="630.4060606060606" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="427.4193548387097" cy="602.6818181818182" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="469.35483870967744" cy="580.5575757575757" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="511.2903225806452" cy="580.5575757575757" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="553.2258064516129" cy="563.6727272727273" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="595.1612903225807" cy="563.6727272727273" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="637.0967741935484" cy="563.6727272727273" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="679.0322580645161" cy="488.7727272727273" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="720.9677419354839" cy="488.7727272727273" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="762.9032258064517" cy="456.9969696969697" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="804.8387096774194" cy="456.9969696969697" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="846.7741935483871" cy="452.7757575757576" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="888.7096774193549" cy="428.4878787878788" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="930.6451612903227" cy="428.4878787878788" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="972.5806451612904" cy="428.4878787878788" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1014.516129032258" cy="342.30303030303037" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1056.4516129032259" cy="333.6484848484849" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1098.3870967741937" cy="254.61212121212128" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1140.3225806451615" cy="187.17878787878794" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1182.258064516129" cy="187.17878787878794" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1224.1935483870968" cy="187.17878787878794" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1266.1290322580646" cy="187.17878787878794" />
+  <circle r="6" fill="#ffffff" style="stroke:#000000;stroke-width:4" cx="1308.0645161290322" cy="166.0090909090909" />
+  <polyline fill="none" style="stroke-width:3; stroke:#000000" points="91.93548387096774,750 133.8709677419355,750 175.80645161290323,675.1 217.74193548387098,675.1 259.6774193548387,630.4060606060606 301.61290322580646,630.4060606060606 343.5483870967742,630.4060606060606 385.48387096774195,630.4060606060606 427.4193548387097,602.6818181818182 469.35483870967744,580.5575757575757 511.2903225806452,580.5575757575757 553.2258064516129,563.6727272727273 595.1612903225807,563.6727272727273 637.0967741935484,563.6727272727273 679.0322580645161,488.7727272727273 720.9677419354839,488.7727272727273 762.9032258064517,456.9969696969697 804.8387096774194,456.9969696969697 846.7741935483871,452.7757575757576 888.7096774193549,428.4878787878788 930.6451612903227,428.4878787878788 972.5806451612904,428.4878787878788 1014.516129032258,342.30303030303037 1056.4516129032259,333.6484848484849 1098.3870967741937,254.61212121212128 1140.3225806451615,187.17878787878794 1182.258064516129,187.17878787878794 1224.1935483870968,187.17878787878794 1266.1290322580646,187.17878787878794 1308.0645161290322,166.0090909090909" />
+</svg>
