@@ -20,7 +20,7 @@ class Program
             Console.Error.WriteLine("Example: dotnet run -- ./may.txt > output.svg");
             return;
         }
-        
+
         List<Transaction>? transactions = Utils.ExtractTransactionList(File.ReadAllLines(args[0]));
         if (transactions == null)
         {
@@ -33,7 +33,8 @@ class Program
         }*/
 
         XElement svg = new XElement(SpendPlot.ns+"svg");
-        svg.Add(SpendPlot.CreateArea());
+        svg.Add(SpendPlot.CreateImageArea());
+        svg.Add(SpendPlot.CreatePlotArea());
 
         // Axis with tick marks and labels
         svg.Add(SpendPlot.CreateAxes());

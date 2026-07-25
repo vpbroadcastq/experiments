@@ -1,5 +1,8 @@
+/home/ben/personal/dev/experiments/svg_expenses_plot/SpendPlot.cs(46,14): warning CS8618: Non-nullable field 'svg' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable. [/home/ben/personal/dev/experiments/svg_expenses_plot/svg.csproj]
+/home/ben/personal/dev/experiments/svg_expenses_plot/SpendPlot.cs(46,14): warning CS0169: The field 'SpendPlot.svg' is never used [/home/ben/personal/dev/experiments/svg_expenses_plot/svg.csproj]
 <svg xmlns="http://www.w3.org/2000/svg">
   <rect width="1400" height="800" fill="#ffffff" style="stroke-width:5; stroke:#00ff00" />
+  <g transform="translate(50 50" />
   <polyline fill="#ffffff" style="stroke-width:4; stroke:#000000" points="50,50 50,750 1350,750" />
   <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="91.93548387096774" y1="750" x2="91.93548387096774" y2="760" />
   <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="133.8709677419355" y1="750" x2="133.8709677419355" y2="760" />

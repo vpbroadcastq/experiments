@@ -43,6 +43,8 @@ class SpendPlot
     const string diagStyle = "stroke:#000000;stroke-width:4;stroke-dasharray:30";
 
 
+    XElement svg; // Whole document
+
     //
     // Public methods
     //
@@ -79,13 +81,22 @@ class SpendPlot
     }
 
     // Creates the outer bounding rectangle of the image
-    public static XElement CreateArea()
+    public static XElement CreateImageArea()
     {
         return new XElement(ns+"rect",
             new XAttribute("width",areaWidth),
             new XAttribute("height",areaHeight),
             new XAttribute("fill",areaFill),
             new XAttribute("style",areaStyle));
+    }
+
+    // <g> translated by the padding.  Tick & axis labels are outside; plot elements are inside.
+    // This allows everything added subsequently to be positioned relative to this box, ignoring the padding
+    public static XElement CreatePlotArea()
+    {
+        string translate = $"translate({axesPad} {axesPad})";
+        return new XElement(ns+"g",
+            new XAttribute("transform",translate));
     }
 
     // Creates the axes object.  The width and height are those of the outer area rect.  The "padding"
