@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 
 
 class SpendPlotConfig
@@ -41,6 +42,11 @@ class SpendPlotConfig
     public string axisLabelFill = "#000000";
     public int axisLabelFontSize = 30;
     public string axisLabelFontFamily = "sans-serif";
+
+    // Tick label parameters
+    public string tickLabelFill = "#000000";
+    public int tickLabelFontSize = 20;
+    public string tickLabelFontFamily = "sans-serif";
 
     // Target diagional line parameters
     public string diagStyle = "stroke:#000000;stroke-width:4;stroke-dasharray:30";
@@ -182,15 +188,17 @@ class SpendPlot
 
         // Axis with tick marks and labels
         plotArea.Add(SpendPlot.CreateAxes(cfg));
-        for (int i=1; i<31; ++i)
+        for (int i=1; i<=31; ++i) // TODO:  31 is hardcoded
         {
             Point dummy = new Point {x=i,y=0};
             plotArea.Add(SpendPlot.CreateAxisMarkerX(cfg, cfg.Plot2Abs(dummy).x));
+            plotArea.Add(SpendPlot.CreateTickLabelX(cfg, cfg.Plot2Abs(dummy).x, i));
         }
-        for (int i=50; i<=310; i+=50)
+        for (int i=50; i<=310; i+=50) // TODO:  310 is hardcoded
         {
             Point dummy = new Point {x=0,y=i};
             plotArea.Add(SpendPlot.CreateAxisMarkerY(cfg, cfg.Plot2Abs(dummy).y));
+            plotArea.Add(SpendPlot.CreateTickLabelY(cfg, cfg.Plot2Abs(dummy).y, i));
         }
         plotArea.Add(SpendPlot.CreateAxisLabelX(cfg));
         plotArea.Add(SpendPlot.CreateAxisLabelY(cfg));
@@ -235,7 +243,7 @@ class SpendPlot
             tracePoints.Remove(tracePoints.Length-1,1); // Remove the trailing space
         }
 
-        return new XElement("polyline",
+        return new XElement(ns+"polyline",
             new XAttribute("fill",cfg.traceFill),
             new XAttribute("style",cfg.traceStyle),
             new XAttribute("points",tracePoints.ToString()));
@@ -295,10 +303,25 @@ class SpendPlot
             new XAttribute("y2",ypos));
     }
 
+    // The fact that val is an int isn't very generic.  Could pass in an object and call ToString?
+    private static XElement CreateTickLabelX(SpendPlotConfig cfg, double xpos, int val)
+    {
+        double y = cfg.AbsDistanceY() + cfg.axisLabelFontSize;
+        return new XElement(ns+"text",
+            new XAttribute("x",xpos),
+            new XAttribute("y",y),
+            new XAttribute("fill", cfg.tickLabelFill),
+            new XAttribute("font-size", cfg.tickLabelFontSize),
+            new XAttribute("font-family", cfg.tickLabelFontFamily),
+            new XAttribute("text-anchor", "top"),
+            new XAttribute("dominant-baseline", "top"),
+            val);
+    }
+
     private static XElement CreateAxisLabelX(SpendPlotConfig cfg)
     {
         double x = cfg.AbsDistanceX()/2.0;
-        double y = cfg.AbsDistanceY() + cfg.axisLabelFontSize;
+        double y = cfg.AbsDistanceY() + cfg.axisLabelFontSize + cfg.tickLabelFontSize;
         return new XElement(ns+"text",
             new XAttribute("x",x),
             new XAttribute("y",y),
@@ -310,9 +333,25 @@ class SpendPlot
             "Day number");
     }
 
-    private static XElement CreateAxisLabelY(SpendPlotConfig cfg)
+    // The fact that val is an int isn't very generic.  Could pass in an object and call ToString?
+    private static XElement CreateTickLabelY(SpendPlotConfig cfg, double ypos, int val)
     {
         double x = 0.0 - cfg.axisLabelFontSize;
+        return new XElement(ns+"text",
+            new XAttribute("x",x),
+            new XAttribute("y",ypos),
+            new XAttribute("fill", cfg.tickLabelFill),
+            new XAttribute("font-size", cfg.tickLabelFontSize),
+            new XAttribute("font-family", cfg.tickLabelFontFamily),
+            new XAttribute("text-anchor", "middle"),
+            new XAttribute("dominant-baseline", "middle"),
+            val);
+    }
+
+    private static XElement CreateAxisLabelY(SpendPlotConfig cfg)
+    {
+        // TODO:  the *2 is an arbitrary fudge factor
+        double x = 0.0 - cfg.axisLabelFontSize - cfg.tickLabelFontSize*2;
         double y = cfg.AbsDistanceY()/2.0;
         string transform = $"rotate(-90,{x},{y})";
         return new XElement(ns+"text",
