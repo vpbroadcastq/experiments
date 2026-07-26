@@ -3,188 +3,94 @@
 using System.Xml.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Reflection.Metadata;
 
 
-class SpendPlot
+class SpendPlotConfig
 {
-    // XML crap
-    public static XNamespace ns = "http://www.w3.org/2000/svg";
+    //
+    // Public data
+    //
 
     // Width and height of the outer area
-    const int areaWidth = 1400;
-    const int areaHeight = 800;
-    const string areaFill = "#ffffff";
-    const string areaStyle = "stroke-width:5; stroke:#00ff00";
+    public int areaWidth = 1400;
+    public int areaHeight = 800; //800
+    public int xyPad = 100;
+    public string areaFill = "#ffffff";
+    public string areaStyle = "stroke-width:5; stroke:#00ff00";
 
     // Marker parameters
-    const int markerRadius = 6;
-    const string markerFill = "#ffffff";
-    const string markerStyle = "stroke:#000000;stroke-width:4";
+    public int markerRadius = 6;
+    public string markerFill = "#ffffff";
+    public string markerStyle = "stroke:#000000;stroke-width:4";
 
     // Trace parameters
-    const string traceFill = "none"; // transparent
-    const string traceStyle = "stroke-width:3; stroke:#000000";
+    public string traceFill = "none"; // transparent
+    public string traceStyle = "stroke-width:3; stroke:#000000";
 
     // Axes parameters
-    const string axesFill = "#ffffff";
-    const string axesStyle = "stroke-width:4; stroke:#000000";
-    const int axesPad = 50; // Offset from outer bounding rect
+    public string axesFill = "#ffffff";
+    public string axesStyle = "stroke-width:4; stroke:#000000";
 
     // Axes marker parameters (tick marks)
-    const string tickFill = "#ffffff";
-    const string tickStyle = "stroke-width:4; stroke:#000000";
-    const double tickLen = 10.0;
+    public string tickFill = "#ffffff";
+    public string tickStyle = "stroke-width:4; stroke:#000000";
+    public double tickLen = 10.0;
 
     // Axis label parameters
-    const string axisLabelFill = "#000000";
-    const int axisLabelFontSize = 35;
+    public string axisLabelFill = "#000000";
+    public int axisLabelFontSize = 30;
+    public string axisLabelFontFamily = "sans-serif";
 
     // Target diagional line parameters
-    const string diagStyle = "stroke:#000000;stroke-width:4;stroke-dasharray:30";
-
-
-    XElement svg; // Whole document
+    public string diagStyle = "stroke:#000000;stroke-width:4;stroke-dasharray:30";
 
     //
     // Public methods
     //
-
-    // Creates a single marker.  Point must have "pixel"/"absolute"-space units (NOT days, $).
-    public static XElement CreateMarker(Point pt)
+    public SpendPlotConfig()
     {
-        return new XElement(ns+"circle",
-            new XAttribute("r",markerRadius),
-            new XAttribute("fill",markerFill),
-            new XAttribute("style",markerStyle),
-            new XAttribute("cx",pt.x), // TODO:  Can cx && cy be floating point?
-            new XAttribute("cy",pt.y));
+        //...
     }
 
-    // Creates the segmented line that connects all the markers.  Points must have "pixel"/"absolute"-space
-    // units (NOT days, $).
-    public static XElement CreateMarkerTrace(ReadOnlySpan<Point> pts)
+    // x-axis distance in "pixel" space
+    public int AbsDistanceX()
     {
-        StringBuilder tracePoints= new StringBuilder();
-        foreach (Point curr in pts)
-        {
-            tracePoints.Append($"{curr.x},{curr.y} ");
-        }
-        if (tracePoints.Length > 0)
-        {
-            tracePoints.Remove(tracePoints.Length-1,1); // Remove the trailing space
-        }
-
-        return new XElement(ns+"polyline",
-            new XAttribute("fill",traceFill),
-            new XAttribute("style",traceStyle),
-            new XAttribute("points",tracePoints.ToString()));
+        return areaWidth-2*xyPad;
     }
 
-    // Creates the outer bounding rectangle of the image
-    public static XElement CreateImageArea()
+    // y-axis distance in "pixel" space
+    public int AbsDistanceY()
     {
-        return new XElement(ns+"rect",
-            new XAttribute("width",areaWidth),
-            new XAttribute("height",areaHeight),
-            new XAttribute("fill",areaFill),
-            new XAttribute("style",areaStyle));
+        return areaHeight-2*xyPad;
     }
 
-    // <g> translated by the padding.  Tick & axis labels are outside; plot elements are inside.
-    // This allows everything added subsequently to be positioned relative to this box, ignoring the padding
-    public static XElement CreatePlotArea()
+    // x-axis length in "plot" space; units of days
+    public int PlotDistanceX()
     {
-        string translate = $"translate({axesPad} {axesPad})";
-        return new XElement(ns+"g",
-            new XAttribute("transform",translate));
+        return 31;
     }
 
-    // Creates the axes object.  The width and height are those of the outer area rect.  The "padding"
-    // member determines the internal offset of the axes within the rect.
-    public static XElement CreateAxes()
+    // y-axis length in "plot" space; units of $
+    public int PlotDistanceY()
     {
-        string axesPoints =$"{axesPad},{axesPad} {axesPad},{areaHeight-axesPad} {areaWidth-axesPad},{areaHeight-axesPad}";
-        return new XElement(ns+"polyline",
-            new XAttribute("fill",axesFill),
-            new XAttribute("style",axesStyle),
-            new XAttribute("points",axesPoints));
-    }
-
-    public static XElement CreateAxisMarkerX(double xpos)
-    {
-        return new XElement(ns+"line",
-            new XAttribute("fill",tickFill),
-            new XAttribute("style",tickStyle),
-            new XAttribute("x1",xpos),
-            new XAttribute("y1",750),
-            new XAttribute("x2",xpos),
-            new XAttribute("y2",750+tickLen));
-    }
-
-    public static XElement CreateAxisMarkerY(double ypos)
-    {
-        return new XElement(ns+"line",
-            new XAttribute("fill",tickFill),
-            new XAttribute("style",tickStyle),
-            new XAttribute("x1",50),
-            new XAttribute("y1",ypos),
-            new XAttribute("x2",50-tickLen),
-            new XAttribute("y2",ypos));
-    }
-
-    public static XElement CreateAxisLabelX()
-    {
-        double x = 750;
-        double y = 800.0-50;
-        return new XElement(ns+"text",
-            new XAttribute("x",x),
-            new XAttribute("y",y),
-            new XAttribute("fill", axisLabelFill),
-            new XAttribute("font-size", axisLabelFontSize),
-            "Day number");
-    }
-
-    public static XElement CreateAxisLabelY()
-    {
-        double x = 50;
-        double y = 400.0/2.0+100;
-        string transform = $"rotate(-90,{x},{y})";
-        return new XElement(ns+"text",
-            new XAttribute("x",x),
-            new XAttribute("y",y),
-            new XAttribute("fill", axisLabelFill),
-            new XAttribute("font-size", axisLabelFontSize),
-            new XAttribute("transform", transform),
-            "Cumulative spent");
-    }
-
-    public static XElement CreateTargetDiagional()
-    {
-        Point start = Plot2Abs(new Point{x=1,y=10});  // Note that y==10 @ x==1
-        Point end = Plot2Abs(new Point{x=31,y=31*10});
-
-        return new XElement(ns+"line",
-            new XAttribute("x1",start.x),
-            new XAttribute("y1",start.y),
-            new XAttribute("x2",end.x),
-            new XAttribute("y2",end.y),
-            new XAttribute("style",diagStyle));
+        return 31*10+20; // Allow space to represent $20 over the limit
     }
 
     // Absolute coordinates (units of "px") to plot coordinates (units of days, $)
-    public static Point Abs2Plot(Point pt)
+    public Point Abs2Plot(Point pt)
     {
         double dollarPerPx = (double)PlotDistanceY()/(double)AbsDistanceY();
         double dayPerPx = (double)PlotDistanceX()/(double)AbsDistanceX();
-        return new Point{x=dayPerPx*(pt.x-50), y=-1*dollarPerPx*(pt.y-750)};
+        return new Point{x=dayPerPx*(pt.x), y=-1*dollarPerPx*(pt.y-AbsDistanceY())};
     }
 
     // Plot coordinates (pt.x~days, pt.y~$) to absolute ("pixel") coordinates
-    public static Point Plot2Abs(Point pt)
+    public Point Plot2Abs(Point pt)
     {
         double pxPerDollar = (double)AbsDistanceY()/(double)PlotDistanceY();
         double pxPerDay = (double)AbsDistanceX()/(double)PlotDistanceX();
-        return new Point{x=pxPerDay*pt.x+50, y=-1*pxPerDollar*pt.y+750};
+        return new Point{x=pxPerDay*pt.x, y=-1*pxPerDollar*pt.y+AbsDistanceY()};
     }
 
     // The input array of transactions might not have a transaction for each day of the month.  It also
@@ -192,7 +98,7 @@ class SpendPlot
     // entry for each day in the month.  Points are in "pixel"/"abs" space so they can be passed directly into
     // CreateMArker() and CreateMarkerTrace(). 
     // Silently ignores any invalid data (like a point with a dayNum <= 0 or > maxPossibleDayNum).  TODO.
-    public static List<Point> TransactionsToPlotData(ReadOnlySpan<Transaction> transactions)
+    public List<Point> TransactionsToPlotData(ReadOnlySpan<Transaction> transactions)
     {
         const int maxPossibleDayNum = 31;
         List<Point> plotData = new List<Point>();
@@ -236,55 +142,210 @@ class SpendPlot
 
         return plotData;
     }
-
-    // x-axis distance in "pixel" space
-    public static int AbsDistanceX()
-    {
-        return areaWidth-2*axesPad;
-    }
-
-    // y-axis distance in "pixel" space
-    public static int AbsDistanceY()
-    {
-        return areaHeight-2*axesPad;
-    }
-
-    // x-axis length in "plot" space; units of days
-    public static int PlotDistanceX()
-    {
-        return 31;
-    }
-
-    // y-axis length in "plot" space; units of $
-    public static int PlotDistanceY()
-    {
-        return 31*10+20; // Allow space to represent $20 over the limit
-    }
 }
 
+class SpendPlot
+{
+    private static XNamespace ns = "http://www.w3.org/2000/svg";
+    private XElement plot;
+
+    //
+    // Public methods
+    //
+    public static SpendPlot Create(SpendPlotConfig cfg, ReadOnlySpan<Transaction> transactions)
+    {
+
+        XElement plot = SpendPlot.Build(cfg, transactions);
+        SpendPlot sp = new SpendPlot(plot);
+        return sp;
+    }
+
+    public string ToXml()
+    {
+        return plot.ToString();
+    }
 
 
+    //
+    // Private methods
+    //
+    private SpendPlot(XElement plot)
+    {
+        this.plot = plot;
+    }
+
+    private static XElement Build(SpendPlotConfig cfg, ReadOnlySpan<Transaction> transactions)
+    {
+        XElement svg = new XElement(ns+"svg"); // outer <svg>...</svg>
+        svg.Add(SpendPlot.CreateImageArea(cfg));  // Rectangle demacating the whole image
+        XElement plotArea = SpendPlot.CreatePlotArea(cfg);  // <g> translated relative to the padding
+
+        // Axis with tick marks and labels
+        plotArea.Add(SpendPlot.CreateAxes(cfg));
+        for (int i=1; i<31; ++i)
+        {
+            Point dummy = new Point {x=i,y=0};
+            plotArea.Add(SpendPlot.CreateAxisMarkerX(cfg, cfg.Plot2Abs(dummy).x));
+        }
+        for (int i=50; i<=310; i+=50)
+        {
+            Point dummy = new Point {x=0,y=i};
+            plotArea.Add(SpendPlot.CreateAxisMarkerY(cfg, cfg.Plot2Abs(dummy).y));
+        }
+        plotArea.Add(SpendPlot.CreateAxisLabelX(cfg));
+        plotArea.Add(SpendPlot.CreateAxisLabelY(cfg));
 
 
+        plotArea.Add(SpendPlot.CreateTargetDiagional(cfg));
 
+        //List<Point> plotData = TransactionsToPlotData(SampleData.transactions);
+        List<Point> plotData = cfg.TransactionsToPlotData(transactions);
+        foreach (Point pt in plotData)
+        {
+            plotArea.Add(SpendPlot.CreateMarker(cfg, pt));
+        }
+        plotArea.Add(SpendPlot.CreateMarkerTrace(cfg, CollectionsMarshal.AsSpan(plotData)));
 
+        svg.Add(plotArea);
+        return svg;
+    }
 
+    // Creates a single marker.  Point must have "pixel"/"absolute"-space units (NOT days, $).
+    private static XElement CreateMarker(SpendPlotConfig cfg, Point pt)
+    {
+        return new XElement(ns+"circle",
+            new XAttribute("r",cfg.markerRadius),
+            new XAttribute("fill",cfg.markerFill),
+            new XAttribute("style",cfg.markerStyle),
+            new XAttribute("cx",pt.x), // TODO:  Can cx && cy be floating point?
+            new XAttribute("cy",pt.y));
+    }
 
+    // Creates the segmented line that connects all the markers.  Points must have "pixel"/"absolute"-space
+    // units (NOT days, $).
+    private static XElement CreateMarkerTrace(SpendPlotConfig cfg, ReadOnlySpan<Point> pts)
+    {
+        StringBuilder tracePoints= new StringBuilder();
+        foreach (Point curr in pts)
+        {
+            tracePoints.Append($"{curr.x},{curr.y} ");
+        }
+        if (tracePoints.Length > 0)
+        {
+            tracePoints.Remove(tracePoints.Length-1,1); // Remove the trailing space
+        }
 
+        return new XElement("polyline",
+            new XAttribute("fill",cfg.traceFill),
+            new XAttribute("style",cfg.traceStyle),
+            new XAttribute("points",tracePoints.ToString()));
+    }
 
+    // Creates the outer bounding rectangle of the image
+    // TODO:  This should be calculated from the dimensions of what it contains?
+    private static XElement CreateImageArea(SpendPlotConfig cfg)
+    {
+        return new XElement(ns+"rect",
+            new XAttribute("width",cfg.areaWidth),
+            new XAttribute("height",cfg.areaHeight),
+            new XAttribute("fill",cfg.areaFill),
+            new XAttribute("style",cfg.areaStyle));
+    }
 
+    // <g> translated by the padding.  Tick & axis labels are outside; plot elements are inside.
+    // This allows everything added subsequently to be positioned relative to this box, ignoring the padding
+    private static XElement CreatePlotArea(SpendPlotConfig cfg)
+    {
+        string translate = $"translate({cfg.xyPad} {cfg.xyPad})";
+        return new XElement(ns+"g",
+            new XAttribute("transform",translate));
+    }
 
+    // Creates the axes object.  The width and height are those of the outer area rect.  The "padding"
+    // member determines the internal offset of the axes within the rect.
+    private static XElement CreateAxes(SpendPlotConfig cfg)
+    {
+        //string axesPoints =$"{axesPad},{axesPad} {axesPad},{areaHeight-axesPad} {areaWidth-axesPad},{areaHeight-axesPad}";
+        string axesPoints =$"{0},{0} {0},{cfg.AbsDistanceY()} {cfg.AbsDistanceX()},{cfg.AbsDistanceY()}";
+        return new XElement(ns+"polyline",
+            new XAttribute("fill",cfg.axesFill),
+            new XAttribute("style",cfg.axesStyle),
+            new XAttribute("points",axesPoints));
+    }
 
+    private static XElement CreateAxisMarkerX(SpendPlotConfig cfg, double xpos)
+    {
+        return new XElement(ns+"line",
+            new XAttribute("fill",cfg.tickFill),
+            new XAttribute("style",cfg.tickStyle),
+            new XAttribute("x1",xpos),
+            new XAttribute("y1",cfg.AbsDistanceY()),
+            new XAttribute("x2",xpos),
+            new XAttribute("y2",cfg.AbsDistanceY()+cfg.tickLen));
+    }
 
+    private static XElement CreateAxisMarkerY(SpendPlotConfig cfg, double ypos)
+    {
+        return new XElement(ns+"line",
+            new XAttribute("fill",cfg.tickFill),
+            new XAttribute("style",cfg.tickStyle),
+            new XAttribute("x1",0),
+            new XAttribute("y1",ypos),
+            new XAttribute("x2",-1*cfg.tickLen),
+            new XAttribute("y2",ypos));
+    }
 
+    private static XElement CreateAxisLabelX(SpendPlotConfig cfg)
+    {
+        double x = cfg.AbsDistanceX()/2.0;
+        double y = cfg.AbsDistanceY() + cfg.axisLabelFontSize;
+        return new XElement(ns+"text",
+            new XAttribute("x",x),
+            new XAttribute("y",y),
+            new XAttribute("fill", cfg.axisLabelFill),
+            new XAttribute("font-size", cfg.axisLabelFontSize),
+            new XAttribute("font-family", cfg.axisLabelFontFamily),
+            new XAttribute("text-anchor", "middle"),
+            new XAttribute("dominant-baseline", "middle"),
+            "Day number");
+    }
 
+    private static XElement CreateAxisLabelY(SpendPlotConfig cfg)
+    {
+        double x = 0.0 - cfg.axisLabelFontSize;
+        double y = cfg.AbsDistanceY()/2.0;
+        string transform = $"rotate(-90,{x},{y})";
+        return new XElement(ns+"text",
+            new XAttribute("x",x),
+            new XAttribute("y",y),
+            new XAttribute("fill", cfg.axisLabelFill),
+            new XAttribute("font-size", cfg.axisLabelFontSize),
+            new XAttribute("font-family", cfg.axisLabelFontFamily),
+            new XAttribute("transform", transform),
+            new XAttribute("text-anchor", "middle"),
+            new XAttribute("dominant-baseline", "middle"),
+            "Cumulative spent");
+    }
 
+    private static XElement CreateTargetDiagional(SpendPlotConfig cfg)
+    {
+        Point start = cfg.Plot2Abs(new Point{x=1,y=10});  // Note that y==10 @ x==1
+        Point end = cfg.Plot2Abs(new Point{x=31,y=31*10});
 
+        return new XElement(ns+"line",
+            new XAttribute("x1",start.x),
+            new XAttribute("y1",start.y),
+            new XAttribute("x2",end.x),
+            new XAttribute("y2",end.y),
+            new XAttribute("style",cfg.diagStyle));
+    }
 
+    
 
+    
 
-
-
+    
+}
 
 
 

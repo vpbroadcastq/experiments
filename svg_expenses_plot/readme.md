@@ -13,7 +13,13 @@ Plot your cumulative monthly spending relative to a target of $10/day
 - All of the `Create` functions that emit `XElement`s have inputs in abs/pixel space.  None of these methods should accept paremeters in plot space (days, $).
 
 
-
+## TODO
+- Tick labels
+- Axis font is ugly
+- User-configurable size, styles
+- Output control
+- Configurable target spend
+- Multiple targets?
 
 
 
