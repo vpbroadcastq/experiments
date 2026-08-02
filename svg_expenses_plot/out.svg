@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg">
-  <rect width="1400" height="800" fill="#ffffff" style="stroke-width:5; stroke:#00ff00" />
+  <rect width="1400" height="800" fill="#ffffff" style="stroke-width:5; stroke:#ffffff" />
   <g transform="translate(100 100)">
     <polyline fill="#ffffff" style="stroke-width:4; stroke:#000000" points="0,0 0,600 1200,600" />
     <line fill="#ffffff" style="stroke-width:4; stroke:#000000" x1="38.70967741935484" y1="600" x2="38.70967741935484" y2="610" />

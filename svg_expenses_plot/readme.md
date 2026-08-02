@@ -14,12 +14,10 @@ Plot your cumulative monthly spending relative to a target of $10/day
 
 
 ## TODO
-- Tick labels
-- Axis font is ugly
-- User-configurable size, styles
 - Output control
 - Configurable target spend
 - Multiple targets?
-
-
+- y-intercept at x=1?
+- The tick labels should be user-configurable
+- The plot extents should be user-configurable
 

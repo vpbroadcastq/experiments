@@ -18,7 +18,7 @@ class SpendPlotConfig
     public int areaHeight = 800; //800
     public int xyPad = 100;
     public string areaFill = "#ffffff";
-    public string areaStyle = "stroke-width:5; stroke:#00ff00";
+    public string areaStyle = "stroke-width:5; stroke:#ffffff"; //stroke:#00ff00
 
     // Marker parameters
     public int markerRadius = 6;
