@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TARGET_DIR="/opt/spendplot"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PUBLISH_DIR="$SCRIPT_DIR/bin/publish"
+
+echo "Publishing Release build..."
+dotnet publish "$SCRIPT_DIR/svg.csproj" -c Release -o "$PUBLISH_DIR"
+
+echo "Copying publish output to $TARGET_DIR ..."
+mkdir -p "$TARGET_DIR"
+rm -rf "$TARGET_DIR"/*
+cp -a "$PUBLISH_DIR"/. "$TARGET_DIR"/
+
+echo "Deploy complete."
+echo "Installed files in: $TARGET_DIR"

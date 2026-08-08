@@ -103,7 +103,8 @@ class SpendPlotConfig
     // might have more than one transaction for a given day.  The PlotData List that comes out has a single
     // entry for each day in the month.  Points are in "pixel"/"abs" space so they can be passed directly into
     // CreateMArker() and CreateMarkerTrace(). 
-    // Silently ignores any invalid data (like a point with a dayNum <= 0 or > maxPossibleDayNum).  TODO.
+    // Silently ignores any invalid data (like a point with a dayNum <= 0 or > maxPossibleDayNum).  
+    // TODO:  It's strange that this is a member on the config class
     public List<Point> TransactionsToPlotData(ReadOnlySpan<Transaction> transactions)
     {
         const int maxPossibleDayNum = 31;
@@ -149,6 +150,7 @@ class SpendPlotConfig
         return plotData;
     }
 }
+
 
 class SpendPlot
 {
@@ -206,7 +208,6 @@ class SpendPlot
 
         plotArea.Add(SpendPlot.CreateTargetDiagional(cfg));
 
-        //List<Point> plotData = TransactionsToPlotData(SampleData.transactions);
         List<Point> plotData = cfg.TransactionsToPlotData(transactions);
         foreach (Point pt in plotData)
         {
@@ -303,12 +304,16 @@ class SpendPlot
             new XAttribute("y2",ypos));
     }
 
-    // The fact that val is an int isn't very generic.  Could pass in an object and call ToString?
+    
     private static XElement CreateTickLabelX(SpendPlotConfig cfg, double xpos, int val)
     {
         double y = cfg.AbsDistanceY() + cfg.axisLabelFontSize;
+        // xshift shifts the labels so that they are centered under the tick mark.  These numbers were
+        // just determined experimentally.  They work for one and two digits; probably not for three or
+        // more.  Also,probably not for negative numbers.
+        double xshift = val >= 10 ? 0.5*cfg.tickLabelFontSize : 0.25*cfg.tickLabelFontSize;
         return new XElement(ns+"text",
-            new XAttribute("x",xpos),
+            new XAttribute("x",xpos-xshift),
             new XAttribute("y",y),
             new XAttribute("fill", cfg.tickLabelFill),
             new XAttribute("font-size", cfg.tickLabelFontSize),
