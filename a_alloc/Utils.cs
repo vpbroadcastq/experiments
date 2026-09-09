@@ -2,10 +2,64 @@
 
 
 using System.ComponentModel;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 
 static class Utils
 {
+    public ref struct Splitter
+    {
+        Splitter(char delim, ReadOnlySpan<char> payload)
+        {
+            this.delim = delim;
+            this.payload = payload;
+
+            while (end != payload.Length && payload[end] != delim)
+            {
+                ++end;
+            }
+        }
+
+        bool Finished()
+        {
+            return (beg == end) && (end == payload.Length);
+        }
+
+        bool GoNext()
+        {
+            if (end == payload.Length)
+            {
+                return false;  // All done
+            }
+
+            // beg is on the first char of the previous group, end is on the the delim
+            ++end;
+            beg = end;
+            if (beg == payload.Length)
+            {
+                return false; // The payload ended with a delim
+            }
+
+            // Seek end to the first delim
+            while (end != payload.Length && payload[end] != delim)
+            {
+                ++end;
+            }
+            return true;
+        }
+
+        ReadOnlySpan<char> Current()
+        {
+            return payload.Slice(beg,end-beg);
+        }
+
+        readonly char delim;
+        readonly ReadOnlySpan<char> payload;
+        int beg = 0;
+        int end = 0;
+    }
+
     public struct ConfigData
     {
         public ConfigData(List<string> categories, List<string> rulesExclusive, List<string> rulesExhaustive)
@@ -23,18 +77,55 @@ static class Utils
     // If i was trying to build something good, i wouldn't be using C#
     public struct Symbol
     {
+        Symbol(string symbol, List<int> categories)
+        {
+            this.symbol = symbol;
+            this.categories = categories;
+        }
         public readonly string symbol;
         public readonly List<int> categories;
     }
 
     // TODO:  The regex in use here is constraining symbols and category names in ways that
     // ReadConfig() does not.
-    public static Symbol? ReadSymbols(string[] lines)
+    public static List<Symbol>? ReadSymbols(string[] lines, in List<string> categories)
     {
-        string rx = @"\(([a-zA-Z0-9\s]+)\);([,\sa-zA-Z0-9]+)";
+        List<Symbol> result = new List<Symbol>();
+        var rx = new System.Text.RegularExpressions.Regex(@"\(([a-zA-Z0-9\s]+)\);([,\sa-zA-Z0-9]+)");
+        bool inSymbolList = false;
         foreach (string ln in lines)
         {
-            //...
+            ReadOnlySpan<char> currLn = TrimWhitespace(ln);
+            if (currLn.Length == 0 || currLn[0] == '#')
+            {
+                continue;
+            }
+
+            if (!inSymbolList && IsEq(currLn,"[symbols]"))
+            {
+                inSymbolList = true;
+                continue;
+            }
+
+            if (!inSymbolList)
+            {
+                continue;
+            }
+
+            // In the symbol list now.  currLn is not a comment and is not empty
+            Match? m = rx.Match(currLn.ToString());  // I love how you have to materialize a string
+            if (m == null || m.Groups.Count != 3)
+            {
+                return null;
+            }
+
+            ReadOnlySpan<char> symbol = m.Groups[1].Value;
+            ReadOnlySpan<char> categorySet = m.Groups[2].Value;  // ,-seperated list
+
+            // Now process the list of categories
+            List<int> currCats = new List<int>();
+
+
         }
     }
 
