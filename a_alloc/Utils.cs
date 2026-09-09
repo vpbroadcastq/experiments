@@ -10,7 +10,7 @@ static class Utils
 {
     public ref struct Splitter
     {
-        Splitter(char delim, ReadOnlySpan<char> payload)
+        public Splitter(char delim, ReadOnlySpan<char> payload)
         {
             this.delim = delim;
             this.payload = payload;
@@ -21,12 +21,12 @@ static class Utils
             }
         }
 
-        bool Finished()
+        public bool Finished()
         {
             return (beg == end) && (end == payload.Length);
         }
 
-        bool GoNext()
+        public bool GoNext()
         {
             if (end == payload.Length)
             {
@@ -49,15 +49,15 @@ static class Utils
             return true;
         }
 
-        ReadOnlySpan<char> Current()
+        public ReadOnlySpan<char> Current()
         {
             return payload.Slice(beg,end-beg);
         }
 
-        readonly char delim;
-        readonly ReadOnlySpan<char> payload;
-        int beg = 0;
-        int end = 0;
+        private readonly char delim;
+        private readonly ReadOnlySpan<char> payload;
+        private int beg = 0;
+        private int end = 0;
     }
 
     public struct ConfigData
@@ -77,7 +77,7 @@ static class Utils
     // If i was trying to build something good, i wouldn't be using C#
     public struct Symbol
     {
-        Symbol(string symbol, List<int> categories)
+        public Symbol(string symbol, List<int> categories)
         {
             this.symbol = symbol;
             this.categories = categories;
@@ -116,17 +116,32 @@ static class Utils
             Match? m = rx.Match(currLn.ToString());  // I love how you have to materialize a string
             if (m == null || m.Groups.Count != 3)
             {
-                return null;
+                return null; //error
             }
 
             ReadOnlySpan<char> symbol = m.Groups[1].Value;
             ReadOnlySpan<char> categorySet = m.Groups[2].Value;  // ,-seperated list
 
             // Now process the list of categories
-            List<int> currCats = new List<int>();
+            List<int> cats = new List<int>();
+            Splitter spl = new Splitter(',',categorySet);
+            while (!spl.Finished())
+            {
+                ReadOnlySpan<char> currCat = spl.Current();
+                int i = categories.IndexOf(currCat.ToString()); // TODO:  FindIndex
+                if (i == -1)
+                {
+                    return null; // error
+                }
+                cats.Add(i);
+                spl.GoNext();
+            }
 
-
+            Symbol symb = new Symbol(symbol.ToString(), cats);
+            result.Add(symb);
         }
+
+        return result;
     }
 
 

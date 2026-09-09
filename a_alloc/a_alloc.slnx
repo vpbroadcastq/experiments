@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="a_alloc.csproj" />
+  <Project Path="a_alloc.Tests/a_alloc.Tests.csproj" />
+</Solution>
