@@ -279,6 +279,70 @@ static public class Utils
     }
 
 
+    // To viloate an "exclusive" rule is to contain two (or more) members that belong to the rule.  The two
+    // indices here are two members of a category set that belong to the rule.
+    // Only one of idxa, idxb being == -1 is probably some sort of error.
+    public ref struct RuleViolationExclusive
+    {
+        // A non-violation (IsEmpty()==true))
+        public RuleViolationExclusive()
+        {
+        }
+
+        public RuleViolationExclusive(int a, int b)
+        {
+            this.idxa = a;
+            this.idxb = b;
+        }
+
+        public bool IsEmpty()
+        {
+            return (idxa == -1) || (idxb == -1);
+        }
+
+        public readonly int idxa = -1;
+        public readonly int idxb = -1;
+    }
+
+    // The category set violates the exclusive rule if more than one entry in the category set is
+    // in the rule
+    public static RuleViolationExclusive ViloatesExclusiveRule(ReadOnlySpan<int> categorySet, ReadOnlySpan<int> ruleExclusive)
+    {
+        int firstCatInRule = -1;
+        foreach (int catInCatSet in categorySet)
+        {
+            if (!ruleExclusive.Contains(catInCatSet))
+            {
+                continue;
+            }
+
+            if (firstCatInRule == -1)
+            {
+                firstCatInRule = catInCatSet;
+                continue;
+            }
+
+            // catInCatSet is in the rule but firstCatInRule, a member of categorySet, was already 
+            // found to be in the rule
+            return new RuleViolationExclusive(firstCatInRule, catInCatSet);
+        }
+
+        return new RuleViolationExclusive();
+    }
+
+    // The category set violates the exhaustive rule if none of the entries in the category set is
+    // in the rule
+    public static bool ViloatesExhaustiveRule(ReadOnlySpan<int> categorySet, ReadOnlySpan<int> ruleExhaustive)
+    {
+        foreach(int catInCatSet in categorySet)
+        {
+            if (ruleExhaustive.Contains(catInCatSet))
+            {
+                return false; // No violation
+            }
+        }
+        return true; // Violation
+    }
 
 
     public static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> s)
