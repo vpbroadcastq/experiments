@@ -6,8 +6,9 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
 
-static class Utils
+static public class Utils
 {
+    // When Finished() is true, Current() will return an empty span
     public ref struct Splitter
     {
         public Splitter(char delim, ReadOnlySpan<char> payload)
@@ -28,8 +29,14 @@ static class Utils
 
         public bool GoNext()
         {
+            if (Finished())
+            {
+                return false;
+            }
+
             if (end == payload.Length)
             {
+                beg = end;
                 return false;  // All done
             }
 
@@ -91,7 +98,7 @@ static class Utils
     public static List<Symbol>? ReadSymbols(string[] lines, in List<string> categories)
     {
         List<Symbol> result = new List<Symbol>();
-        var rx = new System.Text.RegularExpressions.Regex(@"\(([a-zA-Z0-9\s]+)\);([,\sa-zA-Z0-9]+)");
+        var rx = new System.Text.RegularExpressions.Regex(@"\(([a-zA-Z0-9\s]+)\);([,_\sa-zA-Z0-9]+)");
         bool inSymbolList = false;
         foreach (string ln in lines)
         {
@@ -127,7 +134,7 @@ static class Utils
             Splitter spl = new Splitter(',',categorySet);
             while (!spl.Finished())
             {
-                ReadOnlySpan<char> currCat = spl.Current();
+                ReadOnlySpan<char> currCat = TrimWhitespace(spl.Current());
                 int i = categories.IndexOf(currCat.ToString()); // TODO:  FindIndex
                 if (i == -1)
                 {
@@ -327,6 +334,16 @@ static class Utils
         {
             sb.AppendFormat($"{i}: {s}\n");
             ++i;
+        }
+        return sb.ToString();
+    }
+
+    public static string DebugPrintAsCsv(List<int> l)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (int i in l)
+        {
+            sb.AppendFormat($"{i}, ");
         }
         return sb.ToString();
     }

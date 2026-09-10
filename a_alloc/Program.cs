@@ -2,6 +2,8 @@
 
 
 
+using System.Linq.Expressions;
+
 class Program
 {
     public static void Main(string[] args)
@@ -27,6 +29,25 @@ class Program
         Console.WriteLine($"categories:\n{Utils.DebugPrint(cd.Value.categories)}\n\n");
         Console.WriteLine($"exclusive rules:\n{Utils.DebugPrint(cd.Value.rulesExclusive)}\n\n");
         Console.WriteLine($"exhaustive rules:\n{Utils.DebugPrint(cd.Value.rulesExhaustive)}\n\n");
+
+        if (!File.Exists(args[1]))
+        {
+            Console.WriteLine($"Symbols file not found: {args[1]}");
+            return;
+        }
+
+        List<Utils.Symbol>? syms = Utils.ReadSymbols(File.ReadAllLines(args[1]), cd.Value.categories);
+        if (syms == null)
+        {
+            Console.WriteLine("syms == null");
+            return;
+        }
+        Console.WriteLine("Symbols:");
+        foreach (Utils.Symbol currSym in syms)
+        {
+            Console.WriteLine($"{currSym.symbol}:  {Utils.DebugPrintAsCsv(currSym.categories)}");
+        }
+        Console.WriteLine("\n\n");
     }
 }
 
