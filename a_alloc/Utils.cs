@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 static public class Utils
 {
@@ -69,16 +70,17 @@ static public class Utils
 
     public struct ConfigData
     {
-        public ConfigData(List<string> categories, List<string> rulesExclusive, List<string> rulesExhaustive)
+        public ConfigData(List<string> categories, List<List<int>> rulesExclusive, List<List<int>> rulesExhaustive)
         {
             this.categories = categories;
             this.rulesExclusive = rulesExclusive;
             this.rulesExhaustive = rulesExhaustive;
         }
 
+        // If i was trying to build something good, i wouldn't be using C#
         public readonly List<string> categories;
-        public readonly List<string> rulesExclusive;
-        public readonly List<string> rulesExhaustive;
+        public readonly List<List<int>> rulesExclusive;
+        public readonly List<List<int>> rulesExhaustive;
     }
 
     // If i was trying to build something good, i wouldn't be using C#
@@ -93,6 +95,7 @@ static public class Utils
         public readonly List<int> categories;
     }
 
+    // Reads the symbols.ini file
     // TODO:  The regex in use here is constraining symbols and category names in ways that
     // ReadConfig() does not.
     public static List<Symbol>? ReadSymbols(string[] lines, in List<string> categories)
@@ -169,8 +172,8 @@ static public class Utils
         const string headerExh = "[exhaustive]";
 
         List<string> categories = new List<string>();
-        List<string> rulesExclusive = new List<string>();
-        List<string> rulesExhaustive = new List<string>();
+        List<string> rulesExclusiveStr = new List<string>();
+        List<string> rulesExhaustiveStr = new List<string>();
         List<string>? currList = null;
 
         foreach (string ln in lines)
@@ -193,20 +196,20 @@ static public class Utils
             }
             else if (IsEq(currln,headerExcl))
             {
-                if (rulesExclusive.Count > 0)
+                if (rulesExclusiveStr.Count > 0)
                 {
                     return null; // error
                 }
-                currList = rulesExclusive;
+                currList = rulesExclusiveStr;
                 continue;
             }
             else if (IsEq(currln,headerExh))
             {
-                if (rulesExhaustive.Count > 0)
+                if (rulesExhaustiveStr.Count > 0)
                 {
                     return null; // error
                 }
-                currList = rulesExhaustive;
+                currList = rulesExhaustiveStr;
                 continue;
             }
 
@@ -224,57 +227,49 @@ static public class Utils
         }
 
         // Validate that each entry in rulesExclusive is a member of categories
-        foreach (string currRule in rulesExclusive)
+        // and convert each rule from a ,-seperated string to a List<int>
+        List<List<int>> rulesExclusive = new List<List<int>>();
+        foreach (string currRuleStr in rulesExclusiveStr)
         {
-            ReadOnlySpan<char> ruleRemaining = currRule;
-            while (ruleRemaining.Length > 0)
+            List<int> currRule = new List<int>();
+            Splitter spl = new Splitter(',', currRuleStr);
+            while (!spl.Finished())
             {
-                int end = ruleRemaining.IndexOf(',');
-                if (end == -1)
-                {
-                    end = ruleRemaining.Length;
-                }
-                ReadOnlySpan<char> ruleEntry = ruleRemaining.Slice(0,end);
-                ruleEntry = TrimWhitespace(ruleEntry);
-                if (!Contains(ruleEntry, categories))
+                ReadOnlySpan<char> ruleEntry = TrimWhitespace(spl.Current());
+                int i = IndexOf(ruleEntry, categories);
+                if (i==-1)
                 {
                     return null; // error
                 }
-                if (end == ruleRemaining.Length)
-                {
-                    break;
-                }
-                ruleRemaining = ruleRemaining.Slice(end+1,ruleRemaining.Length-(end+1));
+                currRule.Add(i);
+                spl.GoNext();
             }
+            rulesExclusive.Add(currRule);
         }
 
         // Validate that each entry in rulesExchaustive is a member of categories
+        // and convert each rule from a ,-seperated string to a List<int>
         // TODO:  Copy-paste of the block above
-        foreach (string currRule in rulesExhaustive)
+        List<List<int>> rulesExhausive = new List<List<int>>();
+        foreach (string currRuleStr in rulesExhaustiveStr)
         {
-            ReadOnlySpan<char> ruleRemaining = currRule;
-            while (ruleRemaining.Length > 0)
+            List<int> currRule = new List<int>();
+            Splitter spl = new Splitter(',', currRuleStr);
+            while (!spl.Finished())
             {
-                int end = ruleRemaining.IndexOf(',');
-                if (end == -1)
-                {
-                    end = ruleRemaining.Length;
-                }
-                ReadOnlySpan<char> ruleEntry = ruleRemaining.Slice(0,end);
-                ruleEntry = TrimWhitespace(ruleEntry);
-                if (!Contains(ruleEntry, categories))
+                ReadOnlySpan<char> ruleEntry = TrimWhitespace(spl.Current());
+                int i = IndexOf(ruleEntry, categories);
+                if (i==-1)
                 {
                     return null; // error
                 }
-                if (end == ruleRemaining.Length)
-                {
-                    break;
-                }
-                ruleRemaining = ruleRemaining.Slice(end+1,ruleRemaining.Length-(end+1));
+                currRule.Add(i);
+                spl.GoNext();
             }
+            rulesExhausive.Add(currRule);
         }
 
-        ConfigData result = new ConfigData(categories, rulesExclusive, rulesExhaustive);
+        ConfigData result = new ConfigData(categories, rulesExclusive, rulesExhausive);
         return result;
     }
 
@@ -306,6 +301,7 @@ static public class Utils
 
     // The category set violates the exclusive rule if more than one entry in the category set is
     // in the rule
+    // TODO:  This should be a predicate.  The present fn should get a different name.
     public static RuleViolationExclusive ViloatesExclusiveRule(ReadOnlySpan<int> categorySet, ReadOnlySpan<int> ruleExclusive)
     {
         int firstCatInRule = -1;
@@ -380,14 +376,20 @@ static public class Utils
     // Avoids converting the needle into a string
     public static bool Contains(ReadOnlySpan<char> n, List<string> h)
     {
+        return IndexOf(n,h) != -1;
+    }
+
+    // Avoids converting the needle into a string
+    public static int IndexOf(ReadOnlySpan<char> n, List<string> h)
+    {
         for (int i=0; i<h.Count; ++i)
         {
             if (IsEq(h[i],n))
             {
-                return true;
+                return i;
             }
         }
-        return false;
+        return -1;
     }
 
     public static string DebugPrint(List<string> ls)
@@ -408,6 +410,40 @@ static public class Utils
         foreach (int i in l)
         {
             sb.AppendFormat($"{i}, ");
+        }
+        return sb.ToString();
+    }
+
+    public static string DebugPrintExhaustiveRules(ConfigData cd)
+    {
+        return DebugPrintRuleListUnsafe(cd, cd.rulesExhaustive);
+    }
+
+    public static string DebugPrintExclusiveRules(ConfigData cd)
+    {
+        return DebugPrintRuleListUnsafe(cd, cd.rulesExclusive);
+    }
+
+    // The assumption here is thhat the rule list comes from the same ConfigData, so that there
+    // is no need to check the validitiy of the indices
+    public static string DebugPrintRuleListUnsafe(ConfigData cd, List<List<int>> rules)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (List<int> currRule in rules)
+        {
+            foreach ((int cat, int idx) in currRule.Select((value,idx)=>(value,idx)))
+            {
+                bool notLast = idx<(currRule.Count-1);
+                if (notLast)
+                {
+                    sb.AppendFormat($"{cd.categories[cat]}, ");
+                }
+                else
+                {
+                    sb.AppendFormat($"{cd.categories[cat]}");
+                }
+            }
+            sb.Append('\n');
         }
         return sb.ToString();
     }

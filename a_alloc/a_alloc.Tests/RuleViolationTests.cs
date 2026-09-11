@@ -37,6 +37,7 @@ public class RuleViolationTests
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
+    [InlineData(7)]
     public void ViloatesExhaustiveRule_AnyCategoryMatch_IsNotViolation(int matchingCategory)
     {
         Assert.False(Utils.ViloatesExhaustiveRule(

@@ -3,6 +3,7 @@
 
 
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 
 class Program
 {
@@ -27,8 +28,8 @@ class Program
             return;
         }
         Console.WriteLine($"categories:\n{Utils.DebugPrint(cd.Value.categories)}\n\n");
-        Console.WriteLine($"exclusive rules:\n{Utils.DebugPrint(cd.Value.rulesExclusive)}\n\n");
-        Console.WriteLine($"exhaustive rules:\n{Utils.DebugPrint(cd.Value.rulesExhaustive)}\n\n");
+        Console.WriteLine($"exclusive rules:\n{Utils.DebugPrintExclusiveRules(cd.Value)}\n");
+        Console.WriteLine($"exhaustive rules:\n{Utils.DebugPrintExhaustiveRules(cd.Value)}\n");
 
         if (!File.Exists(args[1]))
         {
@@ -46,6 +47,23 @@ class Program
         foreach (Utils.Symbol currSym in syms)
         {
             Console.WriteLine($"{currSym.symbol}:  {Utils.DebugPrintAsCsv(currSym.categories)}");
+            foreach (List<int> currRule in cd.Value.rulesExclusive)
+            {
+                Utils.RuleViolationExclusive vExc = Utils.ViloatesExclusiveRule(CollectionsMarshal.AsSpan(currSym.categories), CollectionsMarshal.AsSpan(currRule));
+                if (!vExc.IsEmpty())
+                {
+                    Console.WriteLine($"\tViolates exclusive rule.  Member of {vExc.idxa}, {vExc.idxb}");
+                }
+            }
+
+            foreach (List<int> currRule in cd.Value.rulesExhaustive)
+            {
+                bool violates = Utils.ViloatesExhaustiveRule(CollectionsMarshal.AsSpan(currSym.categories), CollectionsMarshal.AsSpan(currRule));
+                if (violates)
+                {
+                    Console.WriteLine($"\tViolates exhaustive rule.  Not a member of any of {Utils.DebugPrintAsCsv(currRule)}");
+                }
+            }
         }
         Console.WriteLine("\n\n");
     }
