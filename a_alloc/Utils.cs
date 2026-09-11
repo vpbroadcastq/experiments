@@ -344,29 +344,15 @@ static public class Utils
     public static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> s)
     {
         int beg = 0;
-        while (beg < s.Length)
+        while ((beg < s.Length) && System.Char.IsWhiteSpace(s[beg]))
         {
-            if (System.Char.IsWhiteSpace(s[beg]))
-            {
-                ++beg;
-            }
-            else
-            {
-                break;
-            }
+            ++beg;
         }
 
         int end = s.Length - 1;
-        while (end >= 0)
+        while ((end > beg) && System.Char.IsWhiteSpace(s[end]))
         {
-            if (System.Char.IsWhiteSpace(s[end]))
-            {
-                --end;
-            }
-            else
-            {
-                break;
-            }
+            --end;
         }
         ++end; // go one past the last non-whitespace
 

@@ -23,3 +23,10 @@
  - Are govt bonds "large"?
  - Is cash large, medium, or small?
 - Makes it difficult to do oddball categories like pme, reit
+
+
+## Going with design 1
+- If small, medium, large is going to be an exhaustive rule then fixed income and cash have to be assigned
+-- small, medum, large, government ???
+
+
