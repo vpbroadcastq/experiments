@@ -15,6 +15,9 @@ class Program
             return;
         }
 
+        //
+        // Config File defining categories and rules
+        //
         if (!File.Exists(args[0]))
         {
             Console.WriteLine($"Config file not found: {args[0]}");
@@ -31,6 +34,9 @@ class Program
         Console.WriteLine($"exclusive rules:\n{Utils.DebugPrintExclusiveRules(cd.Value)}\n");
         Console.WriteLine($"exhaustive rules:\n{Utils.DebugPrintExhaustiveRules(cd.Value)}\n");
 
+        //
+        // Config file defining symbols and assigning symbols to categories
+        //
         if (!File.Exists(args[1]))
         {
             Console.WriteLine($"Symbols file not found: {args[1]}");
@@ -66,7 +72,27 @@ class Program
             }
         }
         Console.WriteLine("\n\n");
-    }
+
+        //
+        // etfc report
+        //
+        if (!File.Exists(args[2]))
+        {
+            Console.WriteLine($"ETFC file not found: {args[2]}");
+            return;
+        }
+        List<Utils.Asset>? etfc = EtfcImporter.Import(File.ReadAllLines(args[2]));
+        if (etfc == null)
+        {
+            Console.WriteLine("etfc == null");
+            return;
+        }
+        foreach (Utils.Asset a in etfc)
+        {
+            Console.WriteLine($"{a.symbol}:  {a.value}");
+        }
+    
+    } // Main
 }
 
 

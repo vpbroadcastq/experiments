@@ -1,6 +1,16 @@
 # Asset allocation tracker
 
-## Design 1:  Flat list of categories
+## TODO
+- If small, medium, large is going to be an exhaustive rule then fixed income and cash have to be assigned
+-- small, medum, large, government ???
+- Why is everything in `Utils`?
+
+
+
+## Evaluation of possible designs
+I decided to go with Design 1.  This section is just here for historical purposes.
+
+### Design 1:  Flat list of categories (WINNER)
 - Flat list of categories, each entity can belong to multiple categories
 - Plot is constructed by &&'ing together sets of categories that define each slice
  - An entity contributing to the slice must be a member of all the categories &&'ed together
@@ -12,8 +22,7 @@
  - equity, fixed income
  - ...
 
-
-## Design 2:  Multiple category sets
+### Design 2:  Multiple category sets (LOSER)
 - Ex
  - Provenance: domestic, international
  - Type: equity, fixed income, cash (?)
@@ -25,8 +34,6 @@
 - Makes it difficult to do oddball categories like pme, reit
 
 
-## Going with design 1
-- If small, medium, large is going to be an exhaustive rule then fixed income and cash have to be assigned
--- small, medum, large, government ???
+
 
 

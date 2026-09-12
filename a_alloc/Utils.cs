@@ -9,6 +9,18 @@ using System.Xml;
 
 static public class Utils
 {
+    public struct Asset
+    {
+        public Asset(string symbol, double value)
+        {
+            this.symbol = symbol;
+            this.value = value;
+        }
+
+        public readonly string symbol;
+        public readonly double value;
+    }
+    
     // When Finished() is true, Current() will return an empty span
     public ref struct Splitter
     {
@@ -84,6 +96,7 @@ static public class Utils
     }
 
     // If i was trying to build something good, i wouldn't be using C#
+    // TODO:  A "symbol" isn't really fused to a set of categories
     public struct Symbol
     {
         public Symbol(string symbol, List<int> categories)
