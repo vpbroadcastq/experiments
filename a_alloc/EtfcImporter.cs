@@ -93,6 +93,11 @@ public class EtfcImporter
             result.Add(new Utils.Asset(symbol,value));
         }
 
+        if (!foundTable)
+        {
+            return null; // error
+        }
+
         // Validate that the value of all the assets sums to what the table reported as the TOTAL
         // TODO:  Could do all of this while extracting from the table.
         foreach (Utils.Asset a in result)

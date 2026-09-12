@@ -81,16 +81,25 @@ class Program
             Console.WriteLine($"ETFC file not found: {args[2]}");
             return;
         }
-        List<Utils.Asset>? etfc = EtfcImporter.Import(File.ReadAllLines(args[2]));
-        if (etfc == null)
+        string[] fileData = File.ReadAllLines(args[2]);
+        List<Utils.Asset>? etfc = EtfcImporter.Import(fileData);
+        if (etfc != null)
         {
-            Console.WriteLine("etfc == null");
-            return;
+            foreach (Utils.Asset a in etfc)
+            {
+                Console.WriteLine($"{a.symbol}:  {a.value}");
+            }
         }
-        foreach (Utils.Asset a in etfc)
+
+        List<Utils.Asset>? fidelity = FidelityImporter.Import(fileData);
+        if (fidelity != null)
         {
-            Console.WriteLine($"{a.symbol}:  {a.value}");
+            foreach (Utils.Asset a in fidelity)
+            {
+                Console.WriteLine($"{a.symbol}:  {a.value}");
+            }
         }
+        
     
     } // Main
 }

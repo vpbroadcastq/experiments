@@ -4,6 +4,9 @@
 - If small, medium, large is going to be an exhaustive rule then fixed income and cash have to be assigned
 -- small, medum, large, government ???
 - Why is everything in `Utils`?
+- Shouldn't the importers implement some common interface?
+- `IsEq` should go in favor of proper string comparisons
+- More robust error detection when the wrong importer is used
 
 
 
