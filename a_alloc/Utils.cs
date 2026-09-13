@@ -20,7 +20,7 @@ static public class Utils
         public readonly string symbol;
         public readonly double value;
     }
-    
+
     // When Finished() is true, Current() will return an empty span
     public ref struct Splitter
     {
@@ -389,6 +389,38 @@ static public class Utils
             }
         }
         return -1;
+    }
+
+    public static int Count(char n, ReadOnlySpan<char> h)
+    {
+        int i=0;
+        foreach (char c in h)
+        {
+            if (c==n)
+            {
+                ++i;
+            }
+        }
+        return i;
+    }
+
+    // True if s contains more than n instances of c
+    public static bool ContainsMoreThanN(ReadOnlySpan<char> s, char c, int n)
+    {
+        foreach (char currCh in s)
+        {
+            if (currCh!=c)
+            {
+                continue;
+            }
+            
+            --n;
+            if (n<0)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static string DebugPrint(List<string> ls)

@@ -99,6 +99,15 @@ class Program
                 Console.WriteLine($"{a.symbol}:  {a.value}");
             }
         }
+
+        List<Utils.Asset>? tiaa = TiaaImporter.Import(fileData);
+        if (tiaa != null)
+        {
+            foreach (Utils.Asset a in tiaa)
+            {
+                Console.WriteLine($"{a.symbol}:  {a.value}");
+            }
+        }
         
     
     } // Main
