@@ -11,8 +11,10 @@ public class TiaaImporter
     public static List<Utils.Asset>? Import(string[] lines)
     {
         List<Utils.Asset> result = new List<Utils.Asset>();
+        const double ReconcileTolerance = 0.000001;
         
         bool foundTable = false;
+        bool foundAllInvestmentsLine = false;
         int colNumSymbDesc = -1;
         int colNumTotVal = -1;
         double totalValReported = double.NaN; // Total value of all assets reported on the "All Investments" line
@@ -61,6 +63,7 @@ public class TiaaImporter
             if (currLn.StartsWith("All Investments"))
             {
                 // This indicates the end of the table
+                foundAllInvestmentsLine = true;
                 Utils.Splitter splLl = new Utils.Splitter(',', currLn);  // "split last line"
                 splLl.GoNext();
                 if (splLl.Finished())
@@ -103,6 +106,7 @@ public class TiaaImporter
                 else if (j==colNumTotVal)
                 {
                     // The field starts w/a $, ex "$123.45"
+                    // TODO:  Would be nice to have a static helper for this
                     ReadOnlySpan<char> fieldStr = Utils.TrimWhitespace(spl.Current());
                     if (!fieldStr.StartsWith('$'))
                     {
@@ -131,7 +135,7 @@ public class TiaaImporter
             }
         }
 
-        if (!foundTable)
+        if (!foundTable || !foundAllInvestmentsLine)
         {
             return null;
         }
@@ -154,6 +158,18 @@ public class TiaaImporter
             result[i-1] = newEntry;
             result.RemoveAt(i);
             --i;
+        }
+
+        // Verify that all the assets add up to the reported total
+        double totalValActual = 0.0;
+        foreach (Utils.Asset asset in result)
+        {
+            totalValActual += asset.value;
+        }
+
+        if (Math.Abs(totalValActual-totalValReported) > ReconcileTolerance)
+        {
+            return null;
         }
 
         return result;
@@ -199,18 +215,6 @@ public class TiaaImporter
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

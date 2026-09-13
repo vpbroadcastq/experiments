@@ -7,7 +7,7 @@
 - Shouldn't the importers implement some common interface?
 - `IsEq` should go in favor of proper string comparisons
 - More robust error detection when the wrong importer is used
-
+- The importers should extract the date
 
 
 ## Evaluation of possible designs
