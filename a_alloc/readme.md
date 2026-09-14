@@ -8,6 +8,10 @@
 - `IsEq` should go in favor of proper string comparisons
 - More robust error detection when the wrong importer is used
 - The importers should extract the date
+- The etrade importer tests have invalid data sets where numeric fields are invalid and cause double.Parse to fail but i don't think that the tiaa or fidelity importers have similar test cases.
+- Splitting some of the code out of the `.Import` methods and into static helper functions in each importer would make tings easier to read.
+
+
 
 
 ## Evaluation of possible designs

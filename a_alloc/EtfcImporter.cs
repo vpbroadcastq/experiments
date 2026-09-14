@@ -71,8 +71,10 @@ public class EtfcImporter
                 
                 if (j == ColNumValue)
                 {
-                    ReadOnlySpan<char> temp = spl.Current();
-                    value = double.Parse(Utils.TrimWhitespace(temp));
+                    if (!double.TryParse(Utils.TrimWhitespace(spl.Current()), out value))
+                    {
+                        return null; // error
+                    }
                     break;
                 }
 
@@ -80,7 +82,7 @@ public class EtfcImporter
                 spl.GoNext();
             }
 
-            if (symbol.Length==0 || value==double.NaN)
+            if (symbol.Length==0 || double.IsNaN(value))
             {
                 return null; // error
             }
@@ -104,7 +106,7 @@ public class EtfcImporter
         {
             totalVal -= a.value;
         }
-        if (totalVal > 0.05 || totalVal < -0.05)
+        if (Math.Abs(totalVal) > 0.005)
         {
             return null; // error
         }
