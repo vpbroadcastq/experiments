@@ -2,7 +2,7 @@
 
 
 
-internal static class TestData
+internal static partial class TestData
 {
     //
     // Valid
