@@ -9,7 +9,18 @@ class Program
 {
     public static void Main(string[] args)
     {
-        if (args.Length == 0)
+        List<Segment> segs = new List<Segment> {
+            new Segment("haha",0.45),
+            new Segment("haha",0.05),
+            new Segment("haha",0.20),
+            new Segment("haha",0.15),
+            new Segment("haha",0.05),
+            new Segment("haha",0.10)
+        };
+        PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
+        Console.WriteLine(pc.ToXml());
+
+        /*if (args.Length == 0)
         {
             Console.WriteLine("Usage: a_alloc <config-file>");
             return;
@@ -107,7 +118,7 @@ class Program
             {
                 Console.WriteLine($"{a.symbol}:  {a.value}");
             }
-        }
+        }*/
     
     } // Main
 

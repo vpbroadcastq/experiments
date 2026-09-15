@@ -413,7 +413,7 @@ static public class Utils
             {
                 continue;
             }
-            
+
             --n;
             if (n<0)
             {
@@ -495,6 +495,48 @@ static public class Utils
         }
 
         return true;
+    }
+
+    public readonly record struct Rgb(byte R, byte G, byte B);
+    public static Rgb HslToRgb(double h, double s, double l)
+    {
+        double c = (1.0 - Math.Abs(2.0 * l - 1.0)) * s;
+        double hp = h / 60.0;
+        double x = c * (1.0 - Math.Abs(hp % 2.0 - 1.0));
+
+        double r1, g1, b1;
+
+        if (hp < 1)
+        {
+            (r1, g1, b1) = (c, x, 0);
+        }
+        else if (hp < 2)
+        {
+            (r1, g1, b1) = (x, c, 0);
+        }
+        else if (hp < 3)
+        {
+            (r1, g1, b1) = (0, c, x);
+        }
+        else if (hp < 4)
+        {
+            (r1, g1, b1) = (0, x, c);
+        }
+        else if (hp < 5)
+        {
+            (r1, g1, b1) = (x, 0, c);
+        }
+        else
+        {
+            (r1, g1, b1) = (c, 0, x);
+        }
+
+        double m = l - c / 2.0;
+
+        return new Rgb(
+            (byte)Math.Round((r1 + m) * 255),
+            (byte)Math.Round((g1 + m) * 255),
+            (byte)Math.Round((b1 + m) * 255));
     }
 }
 

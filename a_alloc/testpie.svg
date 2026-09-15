@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="800" fill="#ffffff" style="stroke-width:5; stroke:#00ff00" />
+  <path d="M 0.0 0.0 L 0 320 A 320 320 0 0 0 98.8854381999832 -304.3380852144491 Z" transform="translate(700,400)" fill="#D74242" style="stroke-width:3; stroke:#000000" />
+  <path d="M 0.0 0.0 L 98.8854381999832 -304.3380852144491 A 320 320 0 0 0 3.9188697572715304E-14 -320 Z" transform="translate(700,400)" fill="#42D76D" style="stroke-width:3; stroke:#000000" />
+  <path d="M 0.0 0.0 L 3.9188697572715304E-14 -320 A 320 320 0 0 0 -304.3380852144491 -98.88543819998321 Z" transform="translate(700,400)" fill="#9942D7" style="stroke-width:3; stroke:#000000" />
+  <path d="M 0.0 0.0 L -304.3380852144491 -98.88543819998321 A 320 320 0 0 0 -258.88543819998324 188.09128073359133 Z" transform="translate(700,400)" fill="#D7C442" style="stroke-width:3; stroke:#000000" />
+  <path d="M 0.0 0.0 L -258.88543819998324 188.09128073359133 A 320 320 0 0 0 -188.09128073359147 258.8854381999831 Z" transform="translate(700,400)" fill="#42BED7" style="stroke-width:3; stroke:#000000" />
+  <path d="M 0.0 0.0 L -188.09128073359147 258.8854381999831 A 320 320 0 0 0 -7.837739514543061E-14 320 Z" transform="translate(700,400)" fill="#D74292" style="stroke-width:3; stroke:#000000" />
+</svg>
