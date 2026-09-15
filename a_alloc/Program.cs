@@ -9,7 +9,18 @@ class Program
 {
     public static void Main(string[] args)
     {
-        List<Segment> segs = new List<Segment> {
+        CommandLine cmdLn = new CommandLine(args);
+        if (!cmdLn.IsValid())
+        {
+            Console.WriteLine(cmdLn.GetError());
+            Console.WriteLine("Usage: a_alloc <config-file>");
+            return;
+        }
+
+
+
+
+        /*List<Segment> segs = new List<Segment> {
             new Segment("haha",0.45),
             new Segment("haha",0.05),
             new Segment("haha",0.20),
@@ -18,13 +29,7 @@ class Program
             new Segment("haha",0.10)
         };
         PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
-        Console.WriteLine(pc.ToXml());
-
-        /*if (args.Length == 0)
-        {
-            Console.WriteLine("Usage: a_alloc <config-file>");
-            return;
-        }
+        Console.WriteLine(pc.ToXml());*/
 
         //
         // Config File defining categories and rules
@@ -118,7 +123,7 @@ class Program
             {
                 Console.WriteLine($"{a.symbol}:  {a.value}");
             }
-        }*/
+        }
     
     } // Main
 

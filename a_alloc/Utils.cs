@@ -538,6 +538,21 @@ static public class Utils
             (byte)Math.Round((g1 + m) * 255),
             (byte)Math.Round((b1 + m) * 255));
     }
+
+
+    public static bool IsPathValid(string path)
+    {
+        try
+        {
+            Path.GetFullPath(path); // Throws if the path contains invalid characters or violates OS path rules
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 
