@@ -34,13 +34,13 @@ class Program
         //
         // Config File defining categories and rules
         //
-        if (!File.Exists(args[0]))
+        if (!File.Exists(cmdLn.GetCategoriesConfig().ToString()))
         {
             Console.WriteLine($"Config file not found: {args[0]}");
             return;
         }
 
-        Utils.ConfigData? cd = Utils.ReadConfig(File.ReadAllLines(args[0]));
+        Utils.ConfigData? cd = Utils.ReadConfig(File.ReadAllLines(cmdLn.GetCategoriesConfig().ToString()));
         if (cd == null)
         {
             Console.WriteLine("cd == null");
@@ -53,13 +53,13 @@ class Program
         //
         // Config file defining symbols and assigning symbols to categories
         //
-        if (!File.Exists(args[1]))
+        if (!File.Exists(cmdLn.GetSymbolsConfig().ToString()))
         {
-            Console.WriteLine($"Symbols file not found: {args[1]}");
+            Console.WriteLine($"Symbols file not found: {cmdLn.GetSymbolsConfig().ToString()}");
             return;
         }
 
-        List<Utils.Symbol>? syms = Utils.ReadSymbols(File.ReadAllLines(args[1]), cd.Value.categories);
+        List<Utils.Symbol>? syms = Utils.ReadSymbols(File.ReadAllLines(cmdLn.GetSymbolsConfig().ToString()), cd.Value.categories);
         if (syms == null)
         {
             Console.WriteLine("syms == null");
@@ -89,41 +89,38 @@ class Program
         }
         Console.WriteLine("\n\n");
 
-        //
-        // etfc report
-        //
-        if (!File.Exists(args[2]))
+
+        Func<string[], List<Utils.Asset>?>[] importers = [
+            EtfcImporter.Import,
+            FidelityImporter.Import,
+            TiaaImporter.Import
+        ];
+
+        List<Utils.Asset> allAssets = new List<Utils.Asset>();
+        for (int i=0; i<cmdLn.CountDataFiles(); ++i)
         {
-            Console.WriteLine($"ETFC file not found: {args[2]}");
-            return;
-        }
-        string[] fileData = File.ReadAllLines(args[2]);
-        List<Utils.Asset>? etfc = EtfcImporter.Import(fileData);
-        if (etfc != null)
-        {
-            foreach (Utils.Asset a in etfc)
+            ReadOnlySpan<char> currDataFile = cmdLn.GetDataFile(i);
+            string[] currFileData = File.ReadAllLines(currDataFile.ToString());
+            foreach (var currImporter in importers)
             {
-                Console.WriteLine($"{a.symbol}:  {a.value}");
+                List<Utils.Asset>? currAssets = currImporter(currFileData);
+                if (currAssets != null)
+                {
+                    Utils.Merge(allAssets,currAssets);
+                    break;
+                }
             }
         }
 
-        List<Utils.Asset>? fidelity = FidelityImporter.Import(fileData);
-        if (fidelity != null)
+        double total = 0.0;
+        foreach (Utils.Asset a in allAssets)
         {
-            foreach (Utils.Asset a in fidelity)
-            {
-                Console.WriteLine($"{a.symbol}:  {a.value}");
-            }
+            Console.WriteLine($"{a.symbol}:  {a.value}");
+            total += a.value;
         }
+        Console.WriteLine($"TOTAL:  {total}\n");
 
-        List<Utils.Asset>? tiaa = TiaaImporter.Import(fileData);
-        if (tiaa != null)
-        {
-            foreach (Utils.Asset a in tiaa)
-            {
-                Console.WriteLine($"{a.symbol}:  {a.value}");
-            }
-        }
+        
     
     } // Main
 

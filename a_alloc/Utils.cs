@@ -9,7 +9,7 @@ using System.Xml;
 
 static public class Utils
 {
-    public struct Asset
+    public class Asset
     {
         public Asset(string symbol, double value)
         {
@@ -18,8 +18,34 @@ static public class Utils
         }
 
         public readonly string symbol;
-        public readonly double value;
+        public double value;
     }
+
+    // Merge src into dest
+    // TODO:  Need to wrap List<Asset> into a ListAsset class.  Invariant that symbols appear only once.
+    //        Merge() can be a method.
+    public static void Merge(List<Asset> dest, List<Asset> src)
+    {
+        foreach (Asset currSrcAsset in src)
+        {
+            bool foundInDest = false;
+            foreach(Asset currDestAsset in dest)
+            {
+                if (currDestAsset.symbol == currSrcAsset.symbol)
+                {
+                    foundInDest = true;
+                    currDestAsset.value += currSrcAsset.value;
+                    break;
+                }
+            }
+            if (!foundInDest)
+            {
+                dest.Add(currSrcAsset);
+            }
+        }
+    }
+
+
 
     // When Finished() is true, Current() will return an empty span
     public ref struct Splitter
