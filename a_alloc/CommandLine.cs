@@ -11,6 +11,8 @@
 // TODO:  Shound the error type be ushort?
 // TODO:  No GetErrorIfHasError()
 //
+using System.Formats.Asn1;
+
 ref struct MaybeIdx
 {
     private const uint flgUnset = 1u<<31;
@@ -105,9 +107,13 @@ class CommandLine
 
         for (int i=0; i<args.Count(); ++i)
         {
-            if (idxCats==-1 && Utils.IsEq(args[i],"--categories"))
+            if (Utils.IsEq(args[i],"--categories"))
             {
-                if (i<(args.Count()-1) && Utils.IsPathValid(args[i+1]))
+                if (idxCats!=-1)
+                {
+                    error += "More than one --categories command\n";
+                }
+                else if (i<(args.Count()-1) && !args[i+1].StartsWith("--") && Utils.IsPathValid(args[i+1]))
                 {
                     idxCats = i+1;
                 }
@@ -118,9 +124,13 @@ class CommandLine
                 continue;
             }
 
-            if (idxSymbs==-1 && Utils.IsEq(args[i],"--symbols"))
+            if (Utils.IsEq(args[i],"--symbols"))
             {
-                if (i<(args.Count()-1) && Utils.IsPathValid(args[i+1]))
+                if (idxSymbs!=-1)
+                {
+                    error += "More than one --symbols command\n";
+                }
+                else if (i<(args.Count()-1) && !args[i+1].StartsWith("--") && Utils.IsPathValid(args[i+1]))
                 {
                     idxSymbs = i+1;
                 }
@@ -133,35 +143,39 @@ class CommandLine
 
             if (idxInputBeg==-1 && Utils.IsEq(args[i],"--input"))
             {
-                if (i<(args.Count()-1) && Utils.IsPathValid(args[i+1]))
+                if (idxInputBeg!=-1)
                 {
-                    idxInputBeg = i+1;
-                }
-                else
-                {
-                    error += "Invalid input for --input argument\n";
+                    error += "More than one --input command\n";
+                    continue;
                 }
 
-                idxInputEnd = idxInputBeg;
-                while (idxInputEnd<args.Count())
+                for (int j=i+1; j<args.Count(); ++j)
                 {
-                    if (args[idxInputEnd].StartsWith("--"))
+                    if (args[j].StartsWith("--"))
                     {
-                        break;
+                        idxInputEnd = j;
+                        break; // Not an invalid argument; signals the start of the next command
                     }
-                    if (!Utils.IsPathValid(args[idxInputEnd]))
+                    else if (!Utils.IsPathValid(args[j]))
                     {
-                        error += $"Invalid path {args[idxInputEnd]}\n";
+                        error += $"Invalid argument in --input command: {args[j]}\n";
+                        //break; // Invalid argument
                     }
-                    ++idxInputEnd;
+
+                    if (idxInputBeg==-1) // first iteration
+                    {
+                        idxInputBeg = j;
+                    }
+                    idxInputEnd = j+1;
                 }
-                if (idxInputBeg == idxInputEnd)
+
+                if (idxInputBeg == -1)
                 {
-                    error += "Empty argument list for --input\n";
+                    error += "Empty argument list for argument --input\n";
                 }
                 continue;
             }
-        }
+        } // To next i in args[]
     }
 
     public bool IsValid()
