@@ -114,6 +114,12 @@ class PieChart
             svg.Add(seg);
         }
 
+        List<XElement> legend = CreateLegend(cfg,data);
+        foreach (XElement leg in legend)
+        {
+            svg.Add(leg);
+        }
+
         //svg.Add(plotArea);
         return svg;
     }
@@ -155,6 +161,48 @@ class PieChart
             lastAngle = angle;
             lastX2 = x2;
             lastY2 = y2;
+            ++i;
+        }
+        return result;
+    }
+
+    // Creates a single segment, correctly translated and ready to be .Add()'ed to the main XElement
+    private static List<XElement> CreateLegend(PieChartConfig cfg, ReadOnlySpan<Segment> segs)
+    {
+        double cX = cfg.areaWidth/2.0;
+        double cY = cfg.areaHeight/2.0;
+        double r = (cfg.scaleFactor)*((cfg.areaHeight)/2.0);
+        int labelBoxRightPad = 10;
+        int labelBoxLeftPad = 10;
+        int intraLegendVertPad = 10;
+        int colorBoxSize = cfg.labelFontSize;
+
+
+
+        List<XElement> result = new List<XElement>();
+
+        int yTranslate = -1*cfg.labelFontSize;
+        int i = 0;
+        foreach (Segment seg in segs)
+        {
+            yTranslate += cfg.labelFontSize + intraLegendVertPad;
+            Utils.Rgb fill = cfg.GetColor(i);
+            result.Add(new XElement(ns+"rect",
+                new XAttribute("x",cX+r+labelBoxLeftPad),
+                new XAttribute("y",cY+yTranslate),
+                new XAttribute("width",colorBoxSize),
+                new XAttribute("height",colorBoxSize),
+                new XAttribute("fill",$"#{fill.R:X2}{fill.G:X2}{fill.B:X2}"),
+                new XAttribute("style",cfg.traceStyle)));
+            result.Add(new XElement(ns+"text",
+                new XAttribute("x",cX+r+colorBoxSize+labelBoxLeftPad+labelBoxRightPad),
+                new XAttribute("y",cY+yTranslate+cfg.labelFontSize),
+                new XAttribute("fill", cfg.labelFill),
+                new XAttribute("font-size", cfg.labelFontSize),
+                new XAttribute("font-family", cfg.labelFontFamily),
+                new XAttribute("text-anchor", "top"),
+                new XAttribute("dominant-baseline", "middle"),
+                seg.label));
             ++i;
         }
         return result;

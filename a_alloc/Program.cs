@@ -120,48 +120,206 @@ class Program
         }
         Console.WriteLine($"TOTAL:  {total}\n\n");
 
-
-        //
-        // Equity vs Fixed income & cash
-        //
-        int catIdxEquity = cd.Value.categories.IndexOf("equity");
-        int catIdxFi = cd.Value.categories.IndexOf("fixed_income");
-        int catIdxCash = cd.Value.categories.IndexOf("cash");
-        double equityTotal = 0.0;
-        double fiTotal = 0.0;
-        foreach (Utils.Asset a in allAssets)
         {
-            int symIdx = syms.FindIndex(s => Utils.IsEq(s.symbol,a.symbol));
-            if (symIdx == -1)
+            //
+            // Equity vs Fixed income & cash
+            //
+            int catIdxEquity = cd.Value.categories.IndexOf("equity");
+            int catIdxFi = cd.Value.categories.IndexOf("fixed_income");
+            int catIdxCash = cd.Value.categories.IndexOf("cash");
+            double equityTotal = 0.0;
+            double fiTotal = 0.0;
+            foreach (Utils.Asset a in allAssets)
             {
-                Console.WriteLine($"Error!  Unable to find {a.symbol} in the symbol list\n\n");
-                return;
+                int symIdx = syms.FindIndex(s => Utils.IsEq(s.symbol,a.symbol));
+                if (symIdx == -1)
+                {
+                    Console.WriteLine($"Error!  Unable to find {a.symbol} in the symbol list\n\n");
+                    return;
+                }
+                
+                if (syms[symIdx].InCat(catIdxEquity))
+                {
+                    equityTotal += a.value;
+                }
+                else if (syms[symIdx].InCat(catIdxFi) || syms[symIdx].InCat(catIdxCash))
+                {
+                    fiTotal += a.value;
+                }
+                else
+                {
+                    Console.WriteLine($"Error!  {a.symbol} not either Fi/Cash or Equity???\n\n");
+                    return;
+                }
             }
-            
-            if (syms[symIdx].InCat(catIdxEquity))
-            {
-                equityTotal += a.value;
-            }
-            else if (syms[symIdx].InCat(catIdxFi) || syms[symIdx].InCat(catIdxCash))
-            {
-                fiTotal += a.value;
-            }
-            else
-            {
-                Console.WriteLine($"Error!  {a.symbol} not either Fi/Cash or Equity???\n\n");
-                return;
-            }
-        }
-        Console.WriteLine($"equityTotal+fiTotal = {equityTotal} + {fiTotal} = {equityTotal + fiTotal}\n\n");
+            Console.WriteLine($"equityTotal+fiTotal = {equityTotal} + {fiTotal} = {equityTotal + fiTotal}\n\n");
 
-        double fracEquity = equityTotal/total;
-        double fracFi = fiTotal/total;
-        List<Segment> segs = new List<Segment> {
-            new Segment("Fixed income",fracFi),
-            new Segment("Equity",fracEquity)
-        };
-        PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
-        Console.WriteLine(pc.ToXml());
+            double fracEquity = equityTotal/total;
+            double fracFi = fiTotal/total;
+            List<Segment> segs = new List<Segment> {
+                new Segment("Fixed income",fracFi),
+                new Segment("Equity",fracEquity)
+            };
+            PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
+            Console.WriteLine(pc.ToXml());
+            Console.WriteLine("\n\n");
+            File.WriteAllText("testpie.svg", pc.ToXml());
+        }
+
+        {
+            //
+            // Equity foreign vs domestic
+            //
+            int catIdxEquity = cd.Value.categories.IndexOf("equity");
+            int catIdxForeign = cd.Value.categories.IndexOf("foreign");
+            int catIdxDomestic = cd.Value.categories.IndexOf("domestic");
+            double equityTotal = 0.0;
+            double equityForeignTotal = 0.0;
+            double equityDomesticTotal = 0.0;
+            foreach (Utils.Asset a in allAssets)
+            {
+                int symIdx = syms.FindIndex(s => Utils.IsEq(s.symbol,a.symbol));
+                if (symIdx == -1)
+                {
+                    Console.WriteLine($"Error!  Unable to find {a.symbol} in the symbol list\n\n");
+                    return;
+                }
+                
+                if (syms[symIdx].InCat(catIdxEquity))
+                {
+                    equityTotal += a.value;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (syms[symIdx].InCat(catIdxForeign))
+                {
+                    equityForeignTotal += a.value;
+                }
+                else if (syms[symIdx].InCat(catIdxDomestic))
+                {
+                    equityDomesticTotal += a.value;
+                }
+                else
+                {
+                    Console.WriteLine($"Error!  Equity-categorized {a.symbol} not either foreign or domestic???\n\n");
+                    return;
+                }
+            }
+            Console.WriteLine($"equityForeignTotal + EquityDomesticTotal = {equityForeignTotal} + {equityDomesticTotal} = {equityTotal}\n\n");
+
+            double fracForeign = equityForeignTotal/equityTotal;
+            double fracDomestic = equityDomesticTotal/equityTotal;
+            List<Segment> segs = new List<Segment> {
+                new Segment("Foreign",fracForeign),
+                new Segment("Domestic",fracDomestic)
+            };
+            PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
+            Console.WriteLine(pc.ToXml());
+            Console.WriteLine("\n\n");
+            File.WriteAllText("testpie.svg", pc.ToXml());
+        }
+
+        {
+            //
+            // Equity by geography and capitalization
+            //
+            int catIdxEquity = cd.Value.categories.IndexOf("equity");
+            int catIdxForeign = cd.Value.categories.IndexOf("foreign");
+            int catIdxDomestic = cd.Value.categories.IndexOf("domestic");
+            int catIdxSmall = cd.Value.categories.IndexOf("small");
+            int catIdxMid = cd.Value.categories.IndexOf("mid");
+            int catIdxLarge = cd.Value.categories.IndexOf("large");
+            double equityTotal = 0.0;
+            double foreignSmallTotal = 0.0;
+            double foreignMidTotal = 0.0;
+            double foreignLargeTotal = 0.0;
+            double domesticSmallTotal = 0.0;
+            double domesticMidTotal = 0.0;
+            double domesticLargeTotal = 0.0;
+            foreach (Utils.Asset a in allAssets)
+            {
+                int symIdx = syms.FindIndex(s => Utils.IsEq(s.symbol,a.symbol));
+                if (symIdx == -1)
+                {
+                    Console.WriteLine($"Error!  Unable to find {a.symbol} in the symbol list\n\n");
+                    return;
+                }
+                
+                if (syms[symIdx].InCat(catIdxEquity))
+                {
+                    equityTotal += a.value;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (syms[symIdx].InCat(catIdxForeign))
+                {
+                    if (syms[symIdx].InCat(catIdxSmall))
+                    {
+                        foreignSmallTotal += a.value;
+                    }
+                    else if (syms[symIdx].InCat(catIdxMid))
+                    {
+                        foreignMidTotal += a.value;
+                    }
+                    else if (syms[symIdx].InCat(catIdxLarge))
+                    {
+                        foreignLargeTotal += a.value;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error!  Foreign equity {a.symbol} not small, mid, or large???\n\n");
+                        return;
+                    }
+                }
+                else if (syms[symIdx].InCat(catIdxDomestic))
+                {
+                    if (syms[symIdx].InCat(catIdxSmall))
+                    {
+                        domesticSmallTotal += a.value;
+                    }
+                    else if (syms[symIdx].InCat(catIdxMid))
+                    {
+                        domesticMidTotal += a.value;
+                    }
+                    else if (syms[symIdx].InCat(catIdxLarge))
+                    {
+                        domesticLargeTotal += a.value;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error!  Domestic equity {a.symbol} not small, mid, or large???\n\n");
+                        return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Error!  Equity-categorized {a.symbol} not either foreign or domestic???\n\n");
+                    return;
+                }
+            }
+            double categorizedEquityTotal = foreignSmallTotal + foreignMidTotal + foreignLargeTotal
+                + domesticSmallTotal + domesticMidTotal + domesticLargeTotal;
+            Console.WriteLine($"equity category total = {categorizedEquityTotal}; equity total = {equityTotal}\n\n");
+
+            List<Segment> segs = new List<Segment> {
+                new Segment("Foreign small", foreignSmallTotal/equityTotal),
+                //new Segment("Foreign mid", foreignMidTotal/equityTotal),
+                new Segment("Foreign large", foreignLargeTotal/equityTotal),
+                new Segment("Domestic small", domesticSmallTotal/equityTotal),
+                new Segment("Domestic mid", domesticMidTotal/equityTotal),
+                new Segment("Domestic large", domesticLargeTotal/equityTotal)
+            };
+            PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
+            Console.WriteLine(pc.ToXml());
+            Console.WriteLine("\n\n");
+            File.WriteAllText("testpie.svg", pc.ToXml());
+        }
 
     
     } // Main
