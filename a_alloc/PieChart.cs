@@ -138,7 +138,12 @@ class PieChart
             double y1 = lastY2;
             double x2 = r*Math.Sin(angle);
             double y2 = r*Math.Cos(angle);
-            string d = $"M 0.0 0.0 L {x1} {y1} A {r} {r} 0 0 0 {x2} {y2} Z";
+            int largeFlg = 0;
+            if (angle-lastAngle >= Math.PI)
+            {
+                largeFlg = 1;
+            }
+            string d = $"M 0.0 0.0 L {x1} {y1} A {r} {r} 0 {largeFlg} 0 {x2} {y2} Z";
             Utils.Rgb fill = cfg.GetColor(i);
 
             result.Add(new XElement(ns+"path",

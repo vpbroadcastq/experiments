@@ -118,9 +118,51 @@ class Program
             Console.WriteLine($"{a.symbol}:  {a.value}");
             total += a.value;
         }
-        Console.WriteLine($"TOTAL:  {total}\n");
+        Console.WriteLine($"TOTAL:  {total}\n\n");
 
-        
+
+        //
+        // Equity vs Fixed income & cash
+        //
+        int catIdxEquity = cd.Value.categories.IndexOf("equity");
+        int catIdxFi = cd.Value.categories.IndexOf("fixed_income");
+        int catIdxCash = cd.Value.categories.IndexOf("cash");
+        double equityTotal = 0.0;
+        double fiTotal = 0.0;
+        foreach (Utils.Asset a in allAssets)
+        {
+            int symIdx = syms.FindIndex(s => Utils.IsEq(s.symbol,a.symbol));
+            if (symIdx == -1)
+            {
+                Console.WriteLine($"Error!  Unable to find {a.symbol} in the symbol list\n\n");
+                return;
+            }
+            
+            if (syms[symIdx].InCat(catIdxEquity))
+            {
+                equityTotal += a.value;
+            }
+            else if (syms[symIdx].InCat(catIdxFi) || syms[symIdx].InCat(catIdxCash))
+            {
+                fiTotal += a.value;
+            }
+            else
+            {
+                Console.WriteLine($"Error!  {a.symbol} not either Fi/Cash or Equity???\n\n");
+                return;
+            }
+        }
+        Console.WriteLine($"equityTotal+fiTotal = {equityTotal} + {fiTotal} = {equityTotal + fiTotal}\n\n");
+
+        double fracEquity = equityTotal/total;
+        double fracFi = fiTotal/total;
+        List<Segment> segs = new List<Segment> {
+            new Segment("Fixed income",fracFi),
+            new Segment("Equity",fracEquity)
+        };
+        PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
+        Console.WriteLine(pc.ToXml());
+
     
     } // Main
 

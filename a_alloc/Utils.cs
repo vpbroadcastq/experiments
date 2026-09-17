@@ -106,6 +106,8 @@ static public class Utils
         private int end = 0;
     }
 
+    // Maps category names <-> numeric category values
+    // Holds the set of exclusive rules and the set of exhaustive rules.
     public struct ConfigData
     {
         public ConfigData(List<string> categories, List<List<int>> rulesExclusive, List<List<int>> rulesExhaustive)
@@ -115,12 +117,19 @@ static public class Utils
             this.rulesExhaustive = rulesExhaustive;
         }
 
+        // -1 if it doesn't exist
+        public int ToValue(ReadOnlySpan<char> name)
+        {
+            return categories.IndexOf(name.ToString());
+        }
+
         // If i was trying to build something good, i wouldn't be using C#
         public readonly List<string> categories;
         public readonly List<List<int>> rulesExclusive;
         public readonly List<List<int>> rulesExhaustive;
     }
 
+    // Associates a symbol string with its numeric categories
     // If i was trying to build something good, i wouldn't be using C#
     // TODO:  A "symbol" isn't really fused to a set of categories
     public struct Symbol
@@ -130,6 +139,36 @@ static public class Utils
             this.symbol = symbol;
             this.categories = categories;
         }
+
+        public bool InCat(int c)
+        {
+            return categories.Contains(c);
+        }
+
+        public bool InAll(ReadOnlySpan<int> c)
+        {
+            foreach(int currCat in c)
+            {
+                if (!InCat(currCat))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public bool InAny(ReadOnlySpan<int> c)
+        {
+            foreach(int currCat in c)
+            {
+                if (InCat(currCat))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public readonly string symbol;
         public readonly List<int> categories;
     }
@@ -137,10 +176,11 @@ static public class Utils
     // Reads the symbols.ini file
     // TODO:  The regex in use here is constraining symbols and category names in ways that
     // ReadConfig() does not.
+    // TODO:  Wrap.  Maintain invariants of no duplicates.
     public static List<Symbol>? ReadSymbols(string[] lines, in List<string> categories)
     {
         List<Symbol> result = new List<Symbol>();
-        var rx = new System.Text.RegularExpressions.Regex(@"\(([a-zA-Z0-9\s]+)\);([,_\sa-zA-Z0-9]+)");
+        var rx = new System.Text.RegularExpressions.Regex(@"\(([a-zA-Z0-9\\/%\s]+)\);([,_\sa-zA-Z0-9]+)");
         bool inSymbolList = false;
         foreach (string ln in lines)
         {
