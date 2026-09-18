@@ -28,13 +28,9 @@ class PieChartConfig
 
     // Width and height of the outer area
     public int areaWidth = 1400;
-    public int areaHeight = 800; //800
+    public int areaHeight = 640; // Equivalent to picking to diameter of the circie
     public string areaFill = "#ffffff";
     public string areaStyle = "stroke-width:5; stroke:#00ff00";
-
-    // Scale factor
-    // Determines the radius.  Fraction of 1/2 the plot area
-    public double scaleFactor = 0.8;
 
     // Lines seperating the segments
     public string traceStyle = "stroke-width:3; stroke:#000000";
@@ -62,7 +58,20 @@ class PieChartConfig
         return Utils.HslToRgb(hue, sat, light);
     }
 
+    public double GetPieCenterX()
+    {
+        return GetRadius();
+    }
 
+    public double GetPieCenterY()
+    {
+        return GetRadius();
+    }
+
+    public double GetRadius()
+    {
+        return areaHeight/2.0;
+    }
 }
 
 
@@ -100,7 +109,7 @@ class PieChart
     private static XElement Build(PieChartConfig cfg, ReadOnlySpan<Segment> data)
     {
         XElement svg = new XElement(ns+"svg"); // outer <svg>...</svg>
-        svg.Add(PieChart.CreateImageArea(cfg));  // Rectangle demacating the whole image
+        //svg.Add(PieChart.CreateImageArea(cfg));  // Rectangle demacating the whole image
 
         // Build the segments ensuring the fraction values are normalized
         /*double sum = 0.0;
@@ -108,30 +117,21 @@ class PieChart
         {
             sum += s.frac;
         }*/
-        List<XElement> segs = CreateSegments(cfg,data);
-        foreach (XElement seg in segs)
-        {
-            svg.Add(seg);
-        }
-
-        List<XElement> legend = CreateLegend(cfg,data);
-        foreach (XElement leg in legend)
-        {
-            svg.Add(leg);
-        }
+        svg.Add(CreateSegments(cfg,data));
+        svg.Add(CreateLegend(cfg,data));
 
         //svg.Add(plotArea);
         return svg;
     }
 
-    // Creates a single segment, correctly translated and ready to be .Add()'ed to the main XElement
-    private static List<XElement> CreateSegments(PieChartConfig cfg, ReadOnlySpan<Segment> segs)
+    // Creates the chart, correctly translated and ready to be .Add()'ed to the main XElement
+    private static XElement CreateSegments(PieChartConfig cfg, ReadOnlySpan<Segment> segs)
     {
-        double cX = cfg.areaWidth/2.0;
-        double cY = cfg.areaHeight/2.0;
-        double r = (cfg.scaleFactor)*((cfg.areaHeight)/2.0);
-        List<XElement> result = new List<XElement>();
-        string translate = string.Format($"translate({cX},{cY})");
+        double cX = cfg.GetPieCenterX();
+        double cY = cfg.GetPieCenterY();
+        double r = cfg.GetRadius();
+        XElement result = new XElement(ns+"g",
+            new XAttribute("transform",$"translate({cX},{cY})"));
 
         double lastAngle = 0.0;
         double lastX2 = 0.0;
@@ -154,7 +154,6 @@ class PieChart
 
             result.Add(new XElement(ns+"path",
                 new XAttribute("d",d),
-                new XAttribute("transform",translate),
                 new XAttribute("fill",$"#{fill.R:X2}{fill.G:X2}{fill.B:X2}"),
                 new XAttribute("style",cfg.traceStyle)));
 
@@ -166,43 +165,50 @@ class PieChart
         return result;
     }
 
-    // Creates a single segment, correctly translated and ready to be .Add()'ed to the main XElement
-    private static List<XElement> CreateLegend(PieChartConfig cfg, ReadOnlySpan<Segment> segs)
+    // Creates the full legend contained in its own <g> translated into the correct place
+    private static XElement CreateLegend(PieChartConfig cfg, ReadOnlySpan<Segment> segs)
     {
-        double cX = cfg.areaWidth/2.0;
-        double cY = cfg.areaHeight/2.0;
-        double r = (cfg.scaleFactor)*((cfg.areaHeight)/2.0);
-        int labelBoxRightPad = 10;
-        int labelBoxLeftPad = 10;
-        int intraLegendVertPad = 10;
+        double cX = cfg.GetPieCenterX();
+        double cY = cfg.GetPieCenterY();
+        double r = cfg.GetRadius();
+        int labelBoxRightPad = 10;  // Padding between the color box and the text label
+        int intraLegendVertPad = 15;  // Vertical whitespace between entries
         int colorBoxSize = cfg.labelFontSize;
 
-
-
-        List<XElement> result = new List<XElement>();
+        XElement result = new XElement(ns+"g",
+            new XAttribute("transform",$"translate({cX+r+15} {cY-r})"));
 
         int yTranslate = -1*cfg.labelFontSize;
         int i = 0;
         foreach (Segment seg in segs)
         {
             string label = $"{seg.label} ({(Math.Round(1000*seg.frac)/10).ToString("0.#")})";
-            yTranslate += cfg.labelFontSize + intraLegendVertPad;
+            yTranslate += colorBoxSize + intraLegendVertPad;
             Utils.Rgb fill = cfg.GetColor(i);
+
+            // Color box
             result.Add(new XElement(ns+"rect",
-                new XAttribute("x",cX+r+labelBoxLeftPad),
-                new XAttribute("y",cY+yTranslate),
+                new XAttribute("y",yTranslate),
                 new XAttribute("width",colorBoxSize),
                 new XAttribute("height",colorBoxSize),
                 new XAttribute("fill",$"#{fill.R:X2}{fill.G:X2}{fill.B:X2}"),
                 new XAttribute("style",cfg.traceStyle)));
+            
+            // Text label
+            // For vertical positioning, the correct solution is y=txtStartY and dominant-baselime=middle, but
+            // many svg renderer's do not support dominant-baseline.  0.35*fontSize is a standard trick that is
+            // pretty accurate for most fonts.
+            double txtStartX = colorBoxSize+labelBoxRightPad;
+            double txtStartY = yTranslate+colorBoxSize/2.0;
+            //result.Add(CreateDebugMarker(txtStartX, txtStartY));
             result.Add(new XElement(ns+"text",
-                new XAttribute("x",cX+r+colorBoxSize+labelBoxLeftPad+labelBoxRightPad),
-                new XAttribute("y",cY+yTranslate+cfg.labelFontSize),
+                new XAttribute("x",txtStartX),
+                new XAttribute("y",txtStartY + 0.35*cfg.labelFontSize),
                 new XAttribute("fill", cfg.labelFill),
                 new XAttribute("font-size", cfg.labelFontSize),
                 new XAttribute("font-family", cfg.labelFontFamily),
-                new XAttribute("text-anchor", "top"),
-                new XAttribute("dominant-baseline", "middle"),
+                new XAttribute("text-anchor", "start"),
+                //new XAttribute("dominant-baseline", "middle"),
                 label));
             ++i;
         }
@@ -219,6 +225,15 @@ class PieChart
             new XAttribute("height",cfg.areaHeight),
             new XAttribute("fill",cfg.areaFill),
             new XAttribute("style",cfg.areaStyle));
+    }
+
+    private static XElement CreateDebugMarker(double x, double y)
+    {
+        return new XElement(ns+"circle",
+                new XAttribute("cx",x),
+                new XAttribute("cy",y),
+                new XAttribute("r",3),
+                new XAttribute("fill","red"));
     }
     
 }

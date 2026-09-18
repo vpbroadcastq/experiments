@@ -163,7 +163,7 @@ class Program
             PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
             Console.WriteLine(pc.ToXml());
             Console.WriteLine("\n\n");
-            File.WriteAllText("testpie.svg", pc.ToXml());
+            File.WriteAllText("rqfi.svg", pc.ToXml());
         }
 
         {
@@ -219,7 +219,7 @@ class Program
             PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
             Console.WriteLine(pc.ToXml());
             Console.WriteLine("\n\n");
-            File.WriteAllText("testpie.svg", pc.ToXml());
+            File.WriteAllText("eqdi.svg", pc.ToXml());
         }
 
         {
@@ -318,7 +318,7 @@ class Program
             PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
             Console.WriteLine(pc.ToXml());
             Console.WriteLine("\n\n");
-            File.WriteAllText("testpie.svg", pc.ToXml());
+            File.WriteAllText("equity.svg", pc.ToXml());
         }
 
     
