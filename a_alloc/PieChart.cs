@@ -185,6 +185,7 @@ class PieChart
         int i = 0;
         foreach (Segment seg in segs)
         {
+            string label = $"{seg.label} ({(Math.Round(1000*seg.frac)/10).ToString("0.#")})";
             yTranslate += cfg.labelFontSize + intraLegendVertPad;
             Utils.Rgb fill = cfg.GetColor(i);
             result.Add(new XElement(ns+"rect",
@@ -202,7 +203,7 @@ class PieChart
                 new XAttribute("font-family", cfg.labelFontFamily),
                 new XAttribute("text-anchor", "top"),
                 new XAttribute("dominant-baseline", "middle"),
-                seg.label));
+                label));
             ++i;
         }
         return result;
