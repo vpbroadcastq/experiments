@@ -32,7 +32,8 @@ public class EtfcImporterTests
         string payload,
         List<Utils.Asset> expected)
     {
-        List<Utils.Asset>? actual = EtfcImporter.Import(ToLines(payload));
+        EtfcImporter etfc = new EtfcImporter();
+        List<Utils.Asset>? actual = etfc.Import(ToLines(payload));
 
         Assert.NotNull(actual);
         AssertAssetsEqual(expected, actual!);
@@ -42,7 +43,8 @@ public class EtfcImporterTests
     [MemberData(nameof(InvalidCases))]
     public void Import_InvalidData_ReturnsNull(string payload)
     {
-        List<Utils.Asset>? actual = EtfcImporter.Import(ToLines(payload));
+        EtfcImporter etfc = new EtfcImporter();
+        List<Utils.Asset>? actual = etfc.Import(ToLines(payload));
 
         Assert.Null(actual);
     }

@@ -34,7 +34,8 @@ public class TiaaImporterTests
         string payload,
         List<Utils.Asset> expected)
     {
-        List<Utils.Asset>? actual = TiaaImporter.Import(ToLines(payload));
+        TiaaImporter tiaa = new TiaaImporter();
+        List<Utils.Asset>? actual = tiaa.Import(ToLines(payload));
 
         Assert.NotNull(actual);
         AssertAssetsEqual(expected, actual!);
@@ -44,7 +45,8 @@ public class TiaaImporterTests
     [MemberData(nameof(InvalidCases))]
     public void Import_InvalidData_ReturnsNull(string payload)
     {
-        List<Utils.Asset>? actual = TiaaImporter.Import(ToLines(payload));
+        TiaaImporter tiaa = new TiaaImporter();
+        List<Utils.Asset>? actual = tiaa.Import(ToLines(payload));
 
         Assert.Null(actual);
     }

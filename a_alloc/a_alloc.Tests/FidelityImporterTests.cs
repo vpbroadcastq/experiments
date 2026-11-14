@@ -28,7 +28,8 @@ public class FidelityImporterTests
         string payload,
         List<Utils.Asset> expected)
     {
-        List<Utils.Asset>? actual = FidelityImporter.Import(ToLines(payload));
+        FidelityImporter fid = new FidelityImporter();
+        List<Utils.Asset>? actual = fid.Import(ToLines(payload));
 
         Assert.NotNull(actual);
         AssertAssetsEqual(expected, actual!);
@@ -38,7 +39,8 @@ public class FidelityImporterTests
     [MemberData(nameof(InvalidCases))]
     public void Import_InvalidData_ReturnsNull(string payload)
     {
-        List<Utils.Asset>? actual = FidelityImporter.Import(ToLines(payload));
+        FidelityImporter fid = new FidelityImporter();
+        List<Utils.Asset>? actual = fid.Import(ToLines(payload));
 
         Assert.Null(actual);
     }

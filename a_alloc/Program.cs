@@ -78,9 +78,9 @@ class Program
 
 
         Func<string[], List<Utils.Asset>?>[] importers = [
-            EtfcImporter.Import,
-            FidelityImporter.Import,
-            TiaaImporter.Import
+            //EtfcImporter.Import,
+            //FidelityImporter.Import,
+            //TiaaImporter.Import
         ];
 
         List<Utils.Asset> allAssets = new List<Utils.Asset>();

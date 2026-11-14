@@ -2,6 +2,7 @@
 
 
 using System.ComponentModel;
+using System.Globalization;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -45,7 +46,25 @@ static public class Utils
         }
     }
 
-
+    // Convert an abbreviated month string (or the full thing) to the numerical month
+    // m must be at least 3 letters long to avoid ambiguity
+    public static int? ToMonthNumber(ReadOnlySpan<char> m)
+    {
+        if (m.Length < 3)
+        {
+            // Otherwise "Ju" would match both "June" and "July" for example
+            return null;
+        }
+        for (int i=1; i<=12; ++i)
+        {
+            string curr = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(i);
+            if (curr.StartsWith(m,StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+        return null;
+    }
 
     // When Finished() is true, Current() will return an empty span
     public ref struct Splitter

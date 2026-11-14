@@ -1,9 +1,21 @@
 
 
 
-public class FidelityImporter
+public class FidelityImporter : Importer
 {
-    public static List<Utils.Asset>? Import(string[] lines)
+    public bool IsValid(string[] lines)
+    {
+        return true;
+    }
+
+    
+    public DateTime? Date(string[] lines)
+    {
+        return new DateTime();
+    }
+
+
+    public List<Utils.Asset>? Import(string[] lines)
     {
         List<Utils.Asset> result = new List<Utils.Asset>();
         

@@ -2,12 +2,71 @@
 
 
 
-public class EtfcImporter
+using System.Text.RegularExpressions;
+
+public class EtfcImporter : Importer
 {
-    
+    public bool IsValid(string[] lines)
+    {
+        bool foundAccountSummary = false;
+        bool foundViewSummary = false;
+        bool foundGeneratedAt = false;
+        foreach (string ln in lines)
+        {
+            if (!foundAccountSummary && ln.Contains("Account Summary", StringComparison.Ordinal))
+            {
+                foundAccountSummary = true;
+                continue;
+            }
+            if (!foundViewSummary && ln.Contains("View Summary", StringComparison.Ordinal))
+            {
+                foundViewSummary = true;
+                continue;
+            }
+            if (!foundGeneratedAt && ln.Contains("Generated at", StringComparison.Ordinal))
+            {
+                foundGeneratedAt = true;
+                continue;
+            }
+        }
+        return foundAccountSummary && foundViewSummary && foundGeneratedAt;
+    }
+
+    public DateTime? Date(string[] lines)
+    {
+        int idxGeneratedAt = -1;
+        for (int i=0; i<lines.Count(); ++i)
+        {
+            if (lines[i].Contains("Generated at", StringComparison.Ordinal))
+            {
+                idxGeneratedAt = i;
+                break;
+            }
+        }
+        if (idxGeneratedAt == -1)
+        {
+            return null;
+        }
+
+        Regex rx = new Regex(@"([a-zA-Z]{3,})\s(\d+)\s(\d+)\s");
+        Match? m = rx.Match(lines[idxGeneratedAt]);
+        if (m==null || !m.Success || m.Groups.Count!=4)
+        {
+            return null;
+        }
+        int? month = Utils.ToMonthNumber(m.Groups[1].ValueSpan);
+        if (month==null)
+        {
+            return null;
+        }
+        int day = int.Parse(m.Groups[2].ValueSpan);
+        int year = int.Parse(m.Groups[3].ValueSpan);
+
+        return new DateTime(year, month.Value, day);
+    }
 
 
-    public static List<Utils.Asset>? Import(string[] lines)
+    public List<Utils.Asset>? Import(string[] lines)
     {
         List<Utils.Asset> result = new List<Utils.Asset>();
         
