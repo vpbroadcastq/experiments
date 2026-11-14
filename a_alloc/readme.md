@@ -1,5 +1,11 @@
 # Asset allocation tracker
 
+## How to run
+```
+dotnet run --categories ./categories.ini --symbols ./symbols.ini --input ~/whatever/account1_investments.csv ~/whatever/account_data/account2_8_8_2026.csv
+```
+
+
 ## TODO
 - If small, medium, large is going to be an exhaustive rule then fixed income and cash have to be assigned
 -- small, medum, large, government ???

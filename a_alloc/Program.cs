@@ -13,23 +13,10 @@ class Program
         if (!cmdLn.IsValid())
         {
             Console.WriteLine(cmdLn.GetError());
-            Console.WriteLine("Usage: a_alloc <config-file>");
+            Console.WriteLine("Usage: a_alloc --categories ./categories.ini --symbols ./symbols.ini --input account1_investments.csv account2_8_8_2026.csv");
             return;
         }
 
-
-
-
-        /*List<Segment> segs = new List<Segment> {
-            new Segment("haha",0.45),
-            new Segment("haha",0.05),
-            new Segment("haha",0.20),
-            new Segment("haha",0.15),
-            new Segment("haha",0.05),
-            new Segment("haha",0.10)
-        };
-        PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
-        Console.WriteLine(pc.ToXml());*/
 
         //
         // Config File defining categories and rules
@@ -46,7 +33,7 @@ class Program
             Console.WriteLine("cd == null");
             return;
         }
-        Console.WriteLine($"categories:\n{Utils.DebugPrint(cd.Value.categories)}\n\n");
+        Console.WriteLine($"categories:\n{Utils.DebugPrint(cd.Value.categories)}\n");
         Console.WriteLine($"exclusive rules:\n{Utils.DebugPrintExclusiveRules(cd.Value)}\n");
         Console.WriteLine($"exhaustive rules:\n{Utils.DebugPrintExhaustiveRules(cd.Value)}\n");
 
@@ -163,7 +150,7 @@ class Program
             PieChart pc = PieChart.Create(new PieChartConfig(), CollectionsMarshal.AsSpan(segs));
             Console.WriteLine(pc.ToXml());
             Console.WriteLine("\n\n");
-            File.WriteAllText("rqfi.svg", pc.ToXml());
+            File.WriteAllText("eqfi.svg", pc.ToXml());
         }
 
         {
