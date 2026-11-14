@@ -76,11 +76,13 @@ class Program
         }
         Console.WriteLine("\n\n");
 
-
+        EtfcImporter etfcImp = new EtfcImporter();
+        FidelityImporter fidImp = new FidelityImporter();
+        TiaaImporter tiaaImp = new TiaaImporter();
         Func<string[], List<Utils.Asset>?>[] importers = [
-            //EtfcImporter.Import,
-            //FidelityImporter.Import,
-            //TiaaImporter.Import
+            etfcImp.Import,
+            fidImp.Import,
+            tiaaImp.Import,
         ];
 
         List<Utils.Asset> allAssets = new List<Utils.Asset>();

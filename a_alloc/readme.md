@@ -7,10 +7,8 @@ dotnet run --categories ./categories.ini --symbols ./symbols.ini --input ~/whate
 
 
 ## TODO
-- If small, medium, large is going to be an exhaustive rule then fixed income and cash have to be assigned
--- small, medum, large, government ???
+- Finish implementing importer methods for the fidelity and tiaa importers
 - Why is everything in `Utils`?
-- Shouldn't the importers implement some common interface?
 - `IsEq` should go in favor of proper string comparisons
 - More robust error detection when the wrong importer is used
 - The importers should extract the date
@@ -21,7 +19,7 @@ dotnet run --categories ./categories.ini --symbols ./symbols.ini --input ~/whate
 - Move some of the hardcoded constants inside `CreateLegend` into the config class
 - Need to specify a `viewbox` in the `<svg>` but to do this i need to calculate the far right edge of the text
 - This thing produces indivdual pie charts but it really needs to produce them, as well as tabular data, in the form of a report
-
+- The symbols file needs to support regex
 
 ## Evaluation of possible designs
 I decided to go with Design 1.  This section is just here for historical purposes.
