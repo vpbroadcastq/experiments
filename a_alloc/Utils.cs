@@ -638,6 +638,25 @@ static public class Utils
 
         return true;
     }
+
+
+    public static double SumIf(IEnumerable<Utils.Asset> e, Func<Utils.Asset,bool> p)
+    {
+        double result = 0.0;
+        foreach(Utils.Asset curr in e)
+        {
+            if (!p(curr))
+            {
+                continue;
+            }
+            result += curr.value;
+        }
+        return result;
+    }
+
+
+
+
 }
 
 

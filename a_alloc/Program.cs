@@ -53,6 +53,7 @@ class Program
             return;
         }
         Console.WriteLine("Symbols:");
+        // Validate the symbols against the rules
         foreach (Utils.Symbol currSym in syms)
         {
             Console.WriteLine($"{currSym.symbol}:  {Utils.DebugPrintAsCsv(currSym.categories)}");
@@ -76,6 +77,10 @@ class Program
         }
         Console.WriteLine("\n\n");
 
+
+        //
+        // Run importers
+        //
         EtfcImporter etfcImp = new EtfcImporter();
         FidelityImporter fidImp = new FidelityImporter();
         TiaaImporter tiaaImp = new TiaaImporter();
@@ -85,6 +90,7 @@ class Program
             tiaaImp.Import,
         ];
 
+        // Run importers and merge into one master list combining assets from all accounts
         List<Utils.Asset> allAssets = new List<Utils.Asset>();
         for (int i=0; i<cmdLn.CountDataFiles(); ++i)
         {
@@ -101,6 +107,7 @@ class Program
             }
         }
 
+        // Print master list along with overall total
         double total = 0.0;
         foreach (Utils.Asset a in allAssets)
         {
@@ -109,6 +116,10 @@ class Program
         }
         Console.WriteLine($"TOTAL:  {total}\n\n");
 
+
+        //
+        // Pie charts
+        //
         {
             //
             // Equity vs Fixed income & cash
