@@ -1,19 +1,73 @@
 
 
-
+using System.Text.RegularExpressions;
 
 public class TiaaImporter : Importer
 {
     public bool IsValid(string[] lines)
     {
-        return true;
+        bool foundYourInvestments = false;
+        bool foundTiaa = false;
+        bool foundDataAsOf = false;
+        foreach (string ln in lines)
+        {
+            if (!foundYourInvestments && ln.Contains("Your Investments", StringComparison.Ordinal))
+            {
+                foundYourInvestments = true;
+                continue;
+            }
+            if (!foundDataAsOf && ln.Contains("Data As of", StringComparison.OrdinalIgnoreCase))
+            {
+                foundDataAsOf = true;
+                continue;
+            }
+            if (!foundTiaa && ln.Contains("TIAA", StringComparison.Ordinal))
+            {
+                foundTiaa = true;
+                continue;
+            }
+        }
+        return foundYourInvestments && foundDataAsOf && foundTiaa;
     }
 
     
     public DateTime? Date(string[] lines)
     {
-        return new DateTime();
+        int idxDataAsOf = -1;
+        for (int i=0; i<lines.Count(); ++i)
+        {
+            // IgnoteCase because the "A" in "As" is capitalized and at some point you'd expect them to
+            // correct that
+            if (lines[i].Contains("Data As of", StringComparison.OrdinalIgnoreCase))
+            {
+                idxDataAsOf = i;
+                break;
+            }
+        }
+        if (idxDataAsOf == -1)
+        {
+            return null;
+        }
+
+        Regex rx = new Regex(@"([a-zA-Z]{3,})-(\d+)-(\d+)\s");
+        Match? m = rx.Match(lines[idxDataAsOf]);
+        if (m==null || !m.Success || m.Groups.Count!=4)
+        {
+            return null;
+        }
+        int? month = Utils.ToMonthNumber(m.Groups[1].ValueSpan);
+        if (month==null)
+        {
+            return null;
+        }
+        int day = int.Parse(m.Groups[2].ValueSpan);
+        int year = int.Parse(m.Groups[3].ValueSpan);
+
+        return new DateTime(year, month.Value, day);
     }
+
+
+
     public List<Utils.Asset>? Import(string[] lines)
     {
         List<Utils.Asset> result = new List<Utils.Asset>();

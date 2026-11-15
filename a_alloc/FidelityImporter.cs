@@ -1,17 +1,54 @@
 
 
 
+using System.Text.RegularExpressions;
+
 public class FidelityImporter : Importer
 {
     public bool IsValid(string[] lines)
     {
-        return true;
+        foreach (string currLn in lines)
+        {
+            if (currLn.Contains("Fidelity Brokerage",StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     
     public DateTime? Date(string[] lines)
     {
-        return new DateTime();
+        int idxDateDownloaded = -1;
+        for (int i=0; i<lines.Count(); ++i)
+        {
+            if (lines[i].Contains("Date downloaded", StringComparison.Ordinal))
+            {
+                idxDateDownloaded = i;
+                break;
+            }
+        }
+        if (idxDateDownloaded == -1)
+        {
+            return null;
+        }
+
+        Regex rx = new Regex(@"([a-zA-Z]{3,})-(\d+)-(\d+)\s");
+        Match? m = rx.Match(lines[idxDateDownloaded]);
+        if (m==null || !m.Success || m.Groups.Count!=4)
+        {
+            return null;
+        }
+        int? month = Utils.ToMonthNumber(m.Groups[1].ValueSpan);
+        if (month==null)
+        {
+            return null;
+        }
+        int day = int.Parse(m.Groups[2].ValueSpan);
+        int year = int.Parse(m.Groups[3].ValueSpan);
+
+        return new DateTime(year, month.Value, day);
     }
 
 
