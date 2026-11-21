@@ -15,7 +15,7 @@ class Program
 
         // Load assembly
         // TODO:  Does this run any code?  Static initializers?
-        Console.WriteLine($"Loading assembly {args[0]}");
+        Console.WriteLine($"Validating imports for assembly {args[0]}");
         System.Reflection.Assembly a = Assembly.LoadFrom(args[0]);
         // Iterate over all types
         System.Type[] types = a.GetTypes();
