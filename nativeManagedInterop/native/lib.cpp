@@ -86,9 +86,12 @@ class HorribleString {
 static_assert(sizeof(HorribleString)==16);
 
 
-HorribleString::HorribleString()=default;
+HorribleString::HorribleString() {
+    std::print("C++:  HorribleString::HorribleString()\n");
+}
 
 HorribleString::HorribleString(char* src) noexcept {
+    std::print("C++:  HorribleString::HorribleString({})\n", src);
     if (!src) {
         return;
     }
@@ -101,6 +104,7 @@ HorribleString::HorribleString(char* src) noexcept {
 }
 
 HorribleString::~HorribleString() {
+    std::print("C++:  HorribleString::~HorribleString()\n");
     delete[] m_p;
 }
 
@@ -154,18 +158,22 @@ HorribleString& HorribleString::operator=(HorribleString&& rhs) {
 // Other 
 //
 const char* HorribleString::Get() const {
+    std::print("C++:  HorribleString::Get() const\n");
     return m_p;
 }
 
 char* HorribleString::Get() {
+    std::print("C++:  HorribleString::Get()\n");
     return m_p;
 }
 
 ptrdiff_t HorribleString::Size() const {
+    std::print("C++:  HorribleString::Size() const\n");
     return m_sz;
 }
 
 void HorribleString::Set(char* src) {
+   std::print("C++:  HorribleString::Set({})\n", src);
    if (!src) {
         delete[] m_p;
         m_p = nullptr;
@@ -190,12 +198,6 @@ void HorribleString::Set(char* src) {
     *dest = '\0';  // valid because m_sz does not account for the space allocated for the \0
     m_sz = n;
 }
-
-
-
-
-
-
 
 
 
