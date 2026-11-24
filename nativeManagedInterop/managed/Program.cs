@@ -27,6 +27,13 @@ internal static partial class Nat
     [LibraryImport("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so",
     EntryPoint = "_ZN10NonTrivial6GetPtrEv")]
     public static partial nint GetPtr(ref NonTrivial nt);
+
+    [LibraryImport("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so",
+    EntryPoint = "ThisMethodDoesNotExist")]
+    public static partial nint ThisMethodDoesNotExist();
+
+    [LibraryImport("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so")]
+    public static partial nint ThisMethodDoesNotExist2();
 }
 
 
