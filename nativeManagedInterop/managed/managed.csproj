@@ -8,4 +8,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+
+<Target Name="ValidateNativeImports"
+        AfterTargets="Build"
+        Condition="'$(DesignTimeBuild)' != 'true'">
+  <Exec Command="dotnet run --project &quot;$(MSBuildProjectDirectory)/../importValidator/importValidator.csproj&quot; --configuration $(Configuration) -- &quot;$(TargetPath)&quot;" />
+</Target>
+
 </Project>
