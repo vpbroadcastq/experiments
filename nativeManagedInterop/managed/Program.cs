@@ -27,13 +27,6 @@ internal static partial class Nat
     [LibraryImport("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so",
     EntryPoint = "_ZN10NonTrivial6GetPtrEv")]
     public static partial nint GetPtr(ref NonTrivial nt);
-
-    [LibraryImport("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so",
-    EntryPoint = "ThisMethodDoesNotExist")]
-    public static partial nint ThisMethodDoesNotExist();
-
-    [LibraryImport("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so")]
-    public static partial nint ThisMethodDoesNotExist2();
 }
 
 
@@ -44,36 +37,6 @@ class Program
     static void Main()
     {
         Console.WriteLine("C#:  Hello, World!");
-
-        //
-        // Symbol resolution
-        //
-        {
-            // Check the native library for a few symbols
-            NatLib nl = new NatLib("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so");
-            bool add7_exists = nl.ExportExists("add7");
-            Console.WriteLine($"add7_exists=={add7_exists}");
-            bool getptr_exists = nl.ExportExists("_ZN10NonTrivial6GetPtrEv");
-            Console.WriteLine($"getptr_exists=={getptr_exists}");
-            bool bogus_exists = nl.ExportExists("SomethingThatDoesNotExistLaLaLa");
-            Console.WriteLine($"bogus_exists=={bogus_exists}");
-
-
-            // Reflect over the static class Nat and determine which methods it tries to import from the native
-            // library
-            MethodInfo[] importMethods = typeof(Nat).GetMethods(BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static);
-            foreach (MethodInfo mi in importMethods)
-            {
-                // Print anything that has a LibraryImportAttribute
-                LibraryImportAttribute? a = mi.GetCustomAttribute<LibraryImportAttribute>();
-                if (a == null)
-                {
-                    continue;
-                }
-                string? ep = a.EntryPoint;
-                Console.WriteLine($"\tImported method:  {mi.Name} => {ep}");
-            }
-        }
 
         //
         // Simple function calls
