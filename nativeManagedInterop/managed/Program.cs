@@ -68,6 +68,12 @@ class Program
         Int64 hsSize = hs.Size();
         ReadOnlySpan<byte> hsPayload = hs.Get();
         Console.WriteLine($"Read back {hsSize} characters:  {hsPayload.ToString()}");
+
+        HorribleString hs2 = new HorribleString(hs);
+        Int64 hs2Size = hs2.Size();
+        ReadOnlySpan<byte> hs2Payload = hs2.Get();
+        Console.WriteLine($"Read back {hs2Size} characters:  {hs2Payload.ToString()}");
+
     }
 }
 

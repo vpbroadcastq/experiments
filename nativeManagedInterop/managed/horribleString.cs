@@ -23,6 +23,18 @@ partial class HorribleString
         HorribleStringConstruct(ref impl);
     }
 
+    // Deep copy, like you would expect in C++
+    public HorribleString(HorribleString rhs)
+    {
+        unsafe
+        {
+            fixed (HorribleStringImpl* p = &(rhs.impl))
+            {
+                HorribleStringCopyConstruct(ref impl, (nint)p);
+            }
+        }
+    }
+
     public HorribleString(ReadOnlySpan<byte> str)
     {
         Console.WriteLine($"C#:  HorribleString.HorribleString({str.ToString()})");

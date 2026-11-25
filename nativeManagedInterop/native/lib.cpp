@@ -69,6 +69,7 @@ class HorribleString {
     ~HorribleString();
     HorribleString(const HorribleString& rhs);
     HorribleString(HorribleString&& rhs);
+
     //
     // Operators
     //
@@ -109,15 +110,16 @@ HorribleString::~HorribleString() {
 }
 
 HorribleString::HorribleString(const HorribleString& rhs) {
-    m_p = new char[rhs.Size()+1];
-    m_sz = static_cast<ptrdiff_t>(rhs.Size());
-    char* dest = std::copy(rhs.Get(), rhs.Get()+rhs.Size(), m_p);
+    std::print("C++:  HorribleString::HorribleString(const HorribleString& rhs)\n");
+    m_p = new char[rhs.m_sz+1];
+    m_sz = static_cast<ptrdiff_t>(rhs.m_sz);
+    char* dest = std::copy(rhs.m_p, rhs.m_p+rhs.m_sz, m_p);
     *dest = '\0';
 }
 
 HorribleString::HorribleString(HorribleString&& rhs) {
-    m_p = rhs.Get();
-    m_sz = rhs.Size();
+    m_p = rhs.m_p;
+    m_sz = rhs.m_sz;
     rhs.m_p = nullptr;
     rhs.m_sz = 0;
 }
@@ -139,16 +141,16 @@ HorribleString& HorribleString::operator=(const HorribleString& rhs) {
         delete[] m_p;
         m_p = new char[rhs.Size()+1];
     }
-    char* dest = std::copy(rhs.Get(), rhs.Get()+rhs.Size(), m_p);
+    char* dest = std::copy(rhs.m_p, rhs.m_p+rhs.m_sz, m_p);
     *dest = '\0';
-    m_sz = rhs.Size();
+    m_sz = rhs.m_sz;
     return *this;
 }
 
 HorribleString& HorribleString::operator=(HorribleString&& rhs) {
     delete[] m_p;
-    m_p = rhs.Get();
-    m_sz = rhs.Size();
+    m_p = rhs.m_p;
+    m_sz = rhs.m_sz;
     rhs.m_p = nullptr;
     rhs.m_sz = 0;
     return *this;
