@@ -46,7 +46,7 @@ class Program
 
         foreach(var kvp in importedMethods)
         {
-            Console.WriteLine($"{kvp.Key}:\n\t{string.Join(", ", kvp.Value)}");
+            Console.WriteLine($"{kvp.Key}:\n\t{string.Join("\n\t", kvp.Value)}");
         }
         Console.WriteLine("-------------------------------------------------------------------------------");
 

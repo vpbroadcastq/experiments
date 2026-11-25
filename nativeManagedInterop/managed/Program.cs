@@ -58,6 +58,16 @@ class Program
             Stdout.Write(utf8);
             Console.WriteLine();
         }
+
+        //
+        // HorribleString
+        //
+        Console.WriteLine("-------------------------------------------------------------------------");
+        ReadOnlySpan<byte> utf8String = "Here is a sample string that i am going to copy around"u8;
+        HorribleString hs = new HorribleString(utf8String);
+        Int64 hsSize = hs.Size();
+        ReadOnlySpan<byte> hsPayload = hs.Get();
+        Console.WriteLine($"Read back {hsSize} characters:  {hsPayload.ToString()}");
     }
 }
 
