@@ -63,17 +63,27 @@ class Program
         // HorribleString
         //
         Console.WriteLine("-------------------------------------------------------------------------");
+        Console.WriteLine("\nConstruct hs from a byte string");
         ReadOnlySpan<byte> utf8String = "Here is a sample string that i am going to copy around"u8;
         HorribleString hs = new HorribleString(utf8String);
         Int64 hsSize = hs.Size();
         ReadOnlySpan<byte> hsPayload = hs.Get();
-        Console.WriteLine($"Read back {hsSize} characters:  {hsPayload.ToString()}");
+        Console.WriteLine($"Read back hs:  {hsSize} characters,  {Utility.Tou16String(hsPayload)}");
 
+        Console.WriteLine("\nCopy construct hs2 from hs");
         HorribleString hs2 = new HorribleString(hs);
         Int64 hs2Size = hs2.Size();
         ReadOnlySpan<byte> hs2Payload = hs2.Get();
-        Console.WriteLine($"Read back {hs2Size} characters:  {hs2Payload.ToString()}");
+        Console.WriteLine($"Read back {hs2Size} characters,  {Utility.Tou16String(hs2Payload)}");
 
+        Console.WriteLine("\nMove hs2 into hs3");
+        HorribleString hs3 = HorribleString.TakeOwnershipOf(hs2);
+        Console.WriteLine($"Read hs3:  {hs3.Getu16String()}");
+        Console.WriteLine($"Read hs2:  {hs2.Getu16String()}");
+
+        GC.KeepAlive(hs);
+        GC.KeepAlive(hs2);
+        GC.KeepAlive(hs3);
     }
 }
 

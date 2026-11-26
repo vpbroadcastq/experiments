@@ -2,6 +2,7 @@
 
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text;
 
 partial class HorribleString
 {
@@ -26,6 +27,7 @@ partial class HorribleString
     // Deep copy, like you would expect in C++
     public HorribleString(HorribleString rhs)
     {
+        Console.WriteLine($"C#:  HorribleString.HorribleString(HorribleString rhs)");
         unsafe
         {
             fixed (HorribleStringImpl* p = &(rhs.impl))
@@ -33,6 +35,27 @@ partial class HorribleString
                 HorribleStringCopyConstruct(ref impl, (nint)p);
             }
         }
+    }
+
+    ~HorribleString()
+    {
+        Console.WriteLine("C#:  ~HorribleString()");
+        HorribleStringDestruct(ref impl);
+    }
+
+    // "Move constructor"
+    public static HorribleString TakeOwnershipOf(HorribleString rhs)
+    {
+        Console.WriteLine($"C#:  HorribleString.TakeOwnershipOf(HorribleString rhs)");
+        HorribleString result = new HorribleString();
+        unsafe
+        {
+            fixed (HorribleStringImpl* p = &(rhs.impl))
+            {
+                HorribleStringMoveConstruct(ref result.impl, (nint)p);
+            }
+        }
+        return result;
     }
 
     public HorribleString(ReadOnlySpan<byte> str)
@@ -75,11 +98,12 @@ partial class HorribleString
         }
     }
 
-    ~HorribleString()
+    public string Getu16String()
     {
-        Console.WriteLine("C#:  ~HorribleString()");
-        HorribleStringDestruct(ref impl);
+        ReadOnlySpan<byte> u8 = Get();
+        return Encoding.UTF8.GetString(u8);
     }
+
 
     //
     // HorribleString imports
@@ -142,4 +166,11 @@ partial class HorribleString
 
 
 
+public class Utility
+{
 
+    public static string Tou16String(ReadOnlySpan<byte> u8)
+    {
+        return Encoding.UTF8.GetString(u8);
+    }
+}
