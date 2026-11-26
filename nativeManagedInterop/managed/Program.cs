@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 
 
-
+// Random imports from the native library
 internal static partial class Nat
 {
     static public bool test()
@@ -15,6 +15,9 @@ internal static partial class Nat
     [LibraryImport("/home/ben/personal/dev/experiments/nativeManagedInterop/native/build/libnatlib.so")]
     public static partial int add7(int a, int b, int c, int d, int e, int f, int g);
 
+    //
+    // The "NonTrivial type
+    //
     [StructLayout(LayoutKind.Explicit, Size=32)]
     public unsafe struct NonTrivial
     {
